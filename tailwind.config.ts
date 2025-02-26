@@ -24,6 +24,8 @@ export default {
         display: ['Playfair Display', 'serif']
       },
       colors: {
+        'assembly-blue': '#003366', // Ajout de la couleur assembly-blue
+        'assembly-gold': '#FFD700', // Ajout d'une couleur complémentaire
         'senegal-green': '#008751',
         'senegal-yellow': '#FCD116',
         'senegal-red': '#E31B23',
