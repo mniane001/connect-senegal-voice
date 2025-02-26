@@ -24,8 +24,8 @@ const Index = () => {
                 className="bg-senegal-green hover:bg-senegal-green/90 text-white"
                 asChild
               >
-                <a href="/audience">
-                  Demander une Audience
+                <a href="/auth">
+                  Commencer
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </a>
               </Button>

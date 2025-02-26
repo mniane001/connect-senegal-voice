@@ -9,7 +9,123 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      actualites: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          published_at: string | null
+          slug: string
+          title: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          created_by: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          slug: string
+          title: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          slug?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      audiences: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string
+          id: string
+          meeting_date: string | null
+          message: string
+          name: string
+          phone: string | null
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email: string
+          id?: string
+          meeting_date?: string | null
+          message: string
+          name: string
+          phone?: string | null
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string
+          id?: string
+          meeting_date?: string | null
+          message?: string
+          name?: string
+          phone?: string | null
+          status?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      doleances: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string
+          email: string
+          id: string
+          name: string
+          response: string | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          description: string
+          email: string
+          id?: string
+          name: string
+          response?: string | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          email?: string
+          id?: string
+          name?: string
+          response?: string | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
