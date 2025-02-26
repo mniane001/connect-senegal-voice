@@ -1,8 +1,44 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Actualite {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string | null;
+  image_url: string | null;
+  category: string;
+  published_at: string | null;
+}
 
 const Index = () => {
+  const { data: actualites, isLoading } = useQuery({
+    queryKey: ["actualites"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("actualites")
+        .select("*")
+        .order("published_at", { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+      return data as Actualite[];
+    },
+  });
+
+  const formatDate = (date: string | null) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -182,27 +218,69 @@ const Index = () => {
             <div className="w-24 h-1 bg-senegal-green mx-auto"></div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
-                <img
-                  src="/placeholder.svg"
-                  alt="Actualité"
-                  className="w-full aspect-video object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="font-display text-xl font-bold mb-2">
-                    Titre de l'actualité
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Description courte de l'actualité...
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <span>25 février 2025</span>
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="bg-white rounded-xl shadow-lg animate-pulse">
+                  <div className="w-full aspect-video bg-gray-200 rounded-t-xl"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {actualites?.map((actualite) => (
+                <div 
+                  key={actualite.id} 
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+                >
+                  <img
+                    src={actualite.image_url || "/placeholder.svg"}
+                    alt={actualite.title}
+                    className="w-full aspect-video object-cover"
+                  />
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
+                        {actualite.category}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(actualite.published_at)}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
+                      {actualite.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {actualite.excerpt || actualite.content}
+                    </p>
+                    <Button
+                      variant="link"
+                      className="text-senegal-green p-0 hover:text-senegal-green/80"
+                    >
+                      Lire la suite
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-12">
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+            >
+              <a href="/actualites">
+                Voir toutes les actualités
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
+            </Button>
           </div>
         </div>
       </section>
