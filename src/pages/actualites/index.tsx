@@ -26,7 +26,7 @@ interface Actualite {
 }
 
 const categories = [
-  { value: "", label: "Toutes les catégories" },
+  { value: "all", label: "Toutes les catégories" },
   { value: "technologie", label: "Technologie" },
   { value: "education", label: "Éducation" },
   { value: "infrastructure", label: "Infrastructure" },
@@ -39,7 +39,7 @@ const ITEMS_PER_PAGE = 8;
 const ActualitesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data, isLoading } = useQuery({
     queryKey: ["actualites", currentPage, searchTerm, selectedCategory],
@@ -52,7 +52,7 @@ const ActualitesPage = () => {
         query = query.ilike("title", `%${searchTerm}%`);
       }
 
-      if (selectedCategory) {
+      if (selectedCategory && selectedCategory !== "all") {
         query = query.eq("category", selectedCategory);
       }
 
@@ -130,7 +130,7 @@ const ActualitesPage = () => {
             value={selectedCategory} 
             onValueChange={setSelectedCategory}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Filtrer par catégorie" />
             </SelectTrigger>
