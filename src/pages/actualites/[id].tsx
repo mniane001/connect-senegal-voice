@@ -8,7 +8,7 @@ import {
   Facebook, 
   Twitter, 
   Linkedin, 
-  WhatsApp,
+  MessageCircle,
   Share2,
   ArrowRight
 } from "lucide-react";
@@ -63,7 +63,7 @@ const ActualitePage = () => {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
     twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(actualite.title)}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`,
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(actualite.title + " " + window.location.href)}`
+    sms: `sms:?body=${encodeURIComponent(actualite.title + " " + window.location.href)}`
   } : null;
 
   const handleShare = async () => {
@@ -190,13 +190,11 @@ const ActualitePage = () => {
                     asChild
                   >
                     <a 
-                      href={shareUrls.whatsapp}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={shareUrls.sms}
                       className="text-green-600 hover:text-green-700"
                     >
-                      <WhatsApp className="h-4 w-4" />
-                      WhatsApp
+                      <MessageCircle className="h-4 w-4" />
+                      SMS
                     </a>
                   </Button>
                 </>
