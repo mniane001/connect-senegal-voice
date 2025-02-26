@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import {
@@ -38,7 +39,7 @@ const ITEMS_PER_PAGE = 8;
 const ActualitesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["actualites", currentPage, searchTerm, selectedCategory],
@@ -79,6 +80,27 @@ const ActualitesPage = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 py-24">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-lg animate-pulse">
+                <div className="w-full aspect-video bg-gray-200 rounded-t-xl"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -104,7 +126,10 @@ const ActualitesPage = () => {
               className="pl-10"
             />
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select 
+            value={selectedCategory} 
+            onValueChange={setSelectedCategory}
+          >
             <SelectTrigger>
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Filtrer par catégorie" />
@@ -119,89 +144,73 @@ const ActualitesPage = () => {
           </Select>
         </div>
 
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg animate-pulse">
-                <div className="w-full aspect-video bg-gray-200 rounded-t-xl"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {data?.items.map((actualite) => (
+            <div 
+              key={actualite.id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+            >
+              <img
+                src={actualite.image_url || "/placeholder.svg"}
+                alt={actualite.title}
+                className="w-full aspect-video object-cover"
+              />
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
+                    {actualite.category}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatDate(actualite.published_at)}
+                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {data?.items.map((actualite) => (
-                <div 
-                  key={actualite.id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+                <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
+                  {actualite.title}
+                </h3>
+                <p className="text-gray-600 mb-4 line-clamp-3">
+                  {actualite.excerpt || actualite.content}
+                </p>
+                <Button
+                  variant="link"
+                  className="text-senegal-green p-0 hover:text-senegal-green/80"
+                  asChild
                 >
-                  <img
-                    src={actualite.image_url || "/placeholder.svg"}
-                    alt={actualite.title}
-                    className="w-full aspect-video object-cover"
-                  />
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
-                        {actualite.category}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatDate(actualite.published_at)}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
-                      {actualite.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                      {actualite.excerpt || actualite.content}
-                    </p>
-                    <Button
-                      variant="link"
-                      className="text-senegal-green p-0 hover:text-senegal-green/80"
-                      asChild
-                    >
-                      <a href={`/actualites/${actualite.id}`}>
-                        Lire la suite
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                  <Link to={`/actualites/${actualite.id}`}>
+                    Lire la suite
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
+          ))}
+        </div>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-12">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Précédent
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Suivant
-                </Button>
-              </div>
-            )}
-          </>
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-12">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Précédent
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Suivant
+            </Button>
+          </div>
         )}
       </main>
     </div>
