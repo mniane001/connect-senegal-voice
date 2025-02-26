@@ -12,6 +12,7 @@ import AuthPage from "./pages/auth";
 import DoleancesPage from "./pages/doleances";
 import AudiencePage from "./pages/audience";
 import ActualitesPage from "./pages/actualites";
+import ActualitePage from "./pages/actualites/[id]";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/actualites" element={<ActualitesPage />} />
+            <Route path="/actualites/:id" element={<ActualitePage />} />
             <Route
               path="/doleances"
               element={

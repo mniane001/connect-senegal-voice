@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,6 @@ const ActualitesPage = () => {
           </p>
         </div>
 
-        {/* Filtres */}
         <div className="mb-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -112,7 +110,6 @@ const ActualitesPage = () => {
           </Select>
         </div>
 
-        {/* Liste des actualités */}
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
@@ -156,16 +153,18 @@ const ActualitesPage = () => {
                     <Button
                       variant="link"
                       className="text-senegal-green p-0 hover:text-senegal-green/80"
+                      asChild
                     >
-                      Lire la suite
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <a href={`/actualites/${actualite.id}`}>
+                        Lire la suite
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-12">
                 <Button

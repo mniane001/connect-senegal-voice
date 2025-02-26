@@ -260,9 +260,12 @@ const Index = () => {
                     <Button
                       variant="link"
                       className="text-senegal-green p-0 hover:text-senegal-green/80"
+                      asChild
                     >
-                      Lire la suite
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <a href={`/actualites/${actualite.id}`}>
+                        Lire la suite
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
                     </Button>
                   </div>
                 </div>
