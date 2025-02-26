@@ -9,10 +9,9 @@ const Navbar = () => {
 
   const menuItems = [
     { title: "Biographie", href: "/biographie" },
-    { title: "Département de Ziguinchor", href: "/ziguinchor" },
     { title: "Actualités", href: "/actualites" },
     { title: "Initiatives parlementaires", href: "/initiatives" },
-    { title: "Doléances", href: "/doleances" },
+    { title: "Soumettre une question écrite", href: "/doleances" },
   ];
 
   return (
@@ -43,7 +42,7 @@ const Navbar = () => {
               className="bg-senegal-green hover:bg-senegal-green/90 text-white"
               asChild
             >
-              <Link to="/audience">Demander une Audience</Link>
+              <Link to="/audience">Demander une rencontre</Link>
             </Button>
           </div>
 
@@ -74,7 +73,7 @@ const Navbar = () => {
                 className="w-full bg-senegal-green hover:bg-senegal-green/90 text-white"
                 asChild
               >
-                <Link to="/audience">Demander une Audience</Link>
+                <Link to="/audience">Demander une rencontre</Link>
               </Button>
             </div>
           </div>
@@ -85,3 +84,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
