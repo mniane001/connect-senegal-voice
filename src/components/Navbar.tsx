@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,20 +20,20 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center px-4 py-3">
           <div className="flex items-center">
-            <a href="/" className="text-xl font-display font-bold text-senegal-green">
+            <Link to="/" className="text-xl font-display font-bold text-senegal-green">
               GMS
-            </a>
+            </Link>
           </div>
 
           <div className="hidden md:flex space-x-8">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.href}
+                to={item.href}
                 className="text-gray-700 hover:text-senegal-green transition-colors duration-200"
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -42,7 +43,7 @@ const Navbar = () => {
               className="bg-senegal-green hover:bg-senegal-green/90 text-white"
               asChild
             >
-              <a href="/audience">Demander une Audience</a>
+              <Link to="/audience">Demander une Audience</Link>
             </Button>
           </div>
 
@@ -58,13 +59,14 @@ const Navbar = () => {
         {isOpen && (
           <div className="md:hidden px-2 pt-2 pb-3 space-y-1 animate-fade-in">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.href}
+                to={item.href}
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-senegal-green transition-colors duration-200"
+                onClick={() => setIsOpen(false)}
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
             <div className="px-3 py-2">
               <Button
@@ -72,7 +74,7 @@ const Navbar = () => {
                 className="w-full bg-senegal-green hover:bg-senegal-green/90 text-white"
                 asChild
               >
-                <a href="/audience">Demander une Audience</a>
+                <Link to="/audience">Demander une Audience</Link>
               </Button>
             </div>
           </div>
