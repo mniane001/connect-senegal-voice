@@ -13,6 +13,7 @@ import DoleancesPage from "./pages/doleances";
 import AudiencePage from "./pages/audience";
 import ActualitesPage from "./pages/actualites";
 import ActualitePage from "./pages/actualites/[id]";
+import InitiativesPage from "./pages/initiatives";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/actualites" element={<ActualitesPage />} />
             <Route path="/actualites/:id" element={<ActualitePage />} />
+            <Route path="/initiatives" element={<InitiativesPage />} />
             <Route
               path="/doleances"
               element={
