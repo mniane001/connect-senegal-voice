@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,15 @@ interface Actualite {
   category: string;
   published_at: string | null;
 }
+
+const categories = [
+  { value: "", label: "Toutes les catégories" },
+  { value: "technologie", label: "Technologie" },
+  { value: "education", label: "Éducation" },
+  { value: "infrastructure", label: "Infrastructure" },
+  { value: "social", label: "Social" },
+  { value: "economie", label: "Économie" },
+];
 
 const ITEMS_PER_PAGE = 8;
 
@@ -100,12 +110,11 @@ const ActualitesPage = () => {
               <SelectValue placeholder="Filtrer par catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les catégories</SelectItem>
-              <SelectItem value="politique">Politique</SelectItem>
-              <SelectItem value="economie">Économie</SelectItem>
-              <SelectItem value="technologie">Technologie</SelectItem>
-              <SelectItem value="social">Social</SelectItem>
-              <SelectItem value="culture">Culture</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
