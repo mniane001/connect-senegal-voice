@@ -1,7 +1,7 @@
-
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { MessageSquare, Calendar, User, Video } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const QuestionOraleDetailPage = () => {
   const { id } = useParams();
@@ -66,6 +66,7 @@ const QuestionOraleDetailPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

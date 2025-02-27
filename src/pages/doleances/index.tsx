@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Flag } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const DoleancesPage = () => {
   const [name, setName] = useState("");
@@ -171,6 +172,7 @@ const DoleancesPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

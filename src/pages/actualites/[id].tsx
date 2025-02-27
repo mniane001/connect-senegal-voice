@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import Footer from "@/components/Footer";
 
 const ActualitePage = () => {
   const { id } = useParams();
@@ -78,11 +79,10 @@ const ActualitePage = () => {
     }
   };
 
-  // Mise à jour uniquement de la structure JSX pour le thème
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
+      
       <main className="max-w-4xl mx-auto px-4 py-24">
         {isLoading ? (
           <div className="space-y-8 animate-pulse">
@@ -127,7 +127,6 @@ const ActualitePage = () => {
               />
             )}
 
-            {/* Boutons de partage */}
             <div className="flex flex-wrap items-center gap-3 py-4 border-y mb-8">
               <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <Share2 className="h-4 w-4" />
@@ -218,7 +217,6 @@ const ActualitePage = () => {
               ))}
             </div>
 
-            {/* Articles similaires */}
             {relatedArticles && relatedArticles.length > 0 && (
               <section className="mt-16 pt-16 border-t">
                 <h2 className="text-2xl font-bold text-assembly-blue mb-8">
@@ -278,6 +276,8 @@ const ActualitePage = () => {
           </div>
         )}
       </main>
+      
+      <Footer />
     </div>
   );
 };

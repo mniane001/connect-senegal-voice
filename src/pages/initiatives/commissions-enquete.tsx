@@ -1,7 +1,7 @@
-
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Users } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const CommissionsEnquetePage = () => {
   const commissions = [
@@ -88,6 +88,8 @@ const CommissionsEnquetePage = () => {
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

@@ -1,7 +1,7 @@
-
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { FileText } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const QuestionsEcritesPage = () => {
   const questions = [
@@ -95,6 +95,8 @@ const QuestionsEcritesPage = () => {
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ActualiteCard from "@/components/actualites/ActualiteCard";
+import Footer from "@/components/Footer";
 
 interface Actualite {
   id: string;
@@ -83,7 +84,7 @@ const ActualitesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
+      
       {/* Hero Section */}
       <div 
         className="relative bg-cover bg-center py-24 md:py-32" 
@@ -187,6 +188,8 @@ const ActualitesPage = () => {
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 };

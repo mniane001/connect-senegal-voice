@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const AuthPage = () => {
   const [email, setEmail] = useState("");
@@ -119,6 +119,7 @@ const AuthPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

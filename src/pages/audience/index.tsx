@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Mic } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const AudiencePage = () => {
   const [name, setName] = useState("");
@@ -159,6 +160,7 @@ const AudiencePage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

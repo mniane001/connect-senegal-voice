@@ -1,7 +1,7 @@
-
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { MessageSquare } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const QuestionsOralesPage = () => {
   const questions = [
@@ -96,6 +96,8 @@ const QuestionsOralesPage = () => {
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
