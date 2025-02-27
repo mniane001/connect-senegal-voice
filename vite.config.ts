@@ -19,5 +19,13 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: true,
     assetsDir: "assets",
+    rollupOptions: {
+      output: {
+        format: 'es', // Utiliser le format ES modules
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
+    }
   }
 });

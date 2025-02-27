@@ -13,29 +13,33 @@
   <body>
     <div id="root"></div>
 
-    <!-- Chargement des scripts sans utiliser le type module -->
-    <script src="https://cdn.gpteng.co/gptengineer.js"></script>
+    <!-- Chargement des scripts - Ajout de type="module" pour gptengineer.js -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     
-    <!-- Chargement des polyfills et de React -->
+    <!-- Chargement de React et React DOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Notre application pré-compilée -->
-    <script>
-      // Script d'initialisation
-      document.addEventListener('DOMContentLoaded', function() {
-        // Essayer de monter l'application si disponible
-        if (typeof window.App !== 'undefined' && window.ReactDOM) {
-          try {
-            ReactDOM.createRoot(document.getElementById('root')).render(window.App);
-            console.log("Application démarrée avec succès");
-          } catch (error) {
-            console.error("Erreur lors du démarrage de l'application:", error);
-          }
-        } else {
-          console.warn("Chargement classique : L'application React ou ReactDOM n'est pas disponible");
-        }
-      });
+    <!-- Notre application - Utilisant un script traditionnel -->
+    <script type="module">
+      // Import dynamic
+      import('./src/main.tsx')
+        .then(() => {
+          console.log("Module principal chargé avec succès");
+        })
+        .catch(error => {
+          console.error("Erreur lors du chargement du module principal:", error);
+          
+          // Afficher une interface utilisateur de secours en cas d'échec
+          document.getElementById('root').innerHTML = `
+            <div style="text-align: center; margin: 50px auto; max-width: 600px;">
+              <h1>Guy Marius Sagna</h1>
+              <p>Député à l'Assemblée nationale du Sénégal</p>
+              <p>Le site complet sera bientôt disponible. Merci de votre patience.</p>
+              <a href="fallback.html">Version alternative du site</a>
+            </div>
+          `;
+        });
     </script>
   </body>
 </html>
