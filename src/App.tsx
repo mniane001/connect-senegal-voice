@@ -15,9 +15,13 @@ import ActualitesPage from "./pages/actualites";
 import ActualitePage from "./pages/actualites/[id]";
 import InitiativesPage from "./pages/initiatives";
 import QuestionsEcritesPage from "./pages/initiatives/questions-ecrites";
+import QuestionEcriteDetailPage from "./pages/initiatives/questions-ecrites/[id]";
 import QuestionsOralesPage from "./pages/initiatives/questions-orales";
+import QuestionOraleDetailPage from "./pages/initiatives/questions-orales/[id]";
 import CommissionsEnquetePage from "./pages/initiatives/commissions-enquete";
+import CommissionEnqueteDetailPage from "./pages/initiatives/commissions-enquete/[id]";
 import PropositionsLoiPage from "./pages/initiatives/propositions-loi";
+import PropositionLoiDetailPage from "./pages/initiatives/propositions-loi/[id]";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,9 +46,13 @@ const App = () => (
             <Route path="/actualites/:id" element={<ActualitePage />} />
             <Route path="/initiatives" element={<InitiativesPage />} />
             <Route path="/initiatives/questions-ecrites" element={<QuestionsEcritesPage />} />
+            <Route path="/initiatives/questions-ecrites/:id" element={<QuestionEcriteDetailPage />} />
             <Route path="/initiatives/questions-orales" element={<QuestionsOralesPage />} />
+            <Route path="/initiatives/questions-orales/:id" element={<QuestionOraleDetailPage />} />
             <Route path="/initiatives/commissions-enquete" element={<CommissionsEnquetePage />} />
+            <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnqueteDetailPage />} />
             <Route path="/initiatives/propositions-loi" element={<PropositionsLoiPage />} />
+            <Route path="/initiatives/propositions-loi/:id" element={<PropositionLoiDetailPage />} />
             <Route
               path="/doleances"
               element={
