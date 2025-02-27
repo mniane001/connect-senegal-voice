@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +11,7 @@ const Navbar = () => {
     { title: "Biographie", href: "/biographie" },
     { title: "Actualités", href: "/actualites" },
     { title: "Initiatives parlementaires", href: "/initiatives" },
-    { title: "Soumettre une doléance", href: "/doleances" },
-    { title: "Demander une audience", href: "/audience" },
+    { title: "Soumettre une question écrite", href: "/doleances" },
   ];
 
   return (
@@ -36,6 +36,16 @@ const Navbar = () => {
             ))}
           </div>
 
+          <div className="hidden md:block">
+            <Button
+              variant="default"
+              className="bg-senegal-green hover:bg-senegal-green/90 text-white"
+              asChild
+            >
+              <Link to="/audience">Demander une rencontre</Link>
+            </Button>
+          </div>
+
           <button
             className="md:hidden p-2"
             onClick={() => setIsOpen(!isOpen)}
@@ -57,6 +67,15 @@ const Navbar = () => {
                 {item.title}
               </Link>
             ))}
+            <div className="px-3 py-2">
+              <Button
+                variant="default"
+                className="w-full bg-senegal-green hover:bg-senegal-green/90 text-white"
+                asChild
+              >
+                <Link to="/audience">Demander une rencontre</Link>
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -65,3 +84,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
