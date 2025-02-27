@@ -6,7 +6,7 @@ const Footer = () => {
   return (
     <footer className="bg-assembly-blue text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Colonne À propos */}
           <div>
             <h3 className="text-xl font-bold mb-4 text-senegal-yellow">Guy Marius Sagna</h3>
@@ -74,28 +74,6 @@ const Footer = () => {
                 <span>contact@guymarissagna.sn</span>
               </li>
             </ul>
-          </div>
-
-          {/* Colonne Newsletter */}
-          <div>
-            <h3 className="text-xl font-bold mb-4 text-senegal-yellow">Newsletter</h3>
-            <p className="text-gray-300 mb-4">
-              Inscrivez-vous pour recevoir les dernières actualités et mises à jour.
-            </p>
-            <form className="space-y-2">
-              <input
-                type="email"
-                placeholder="Votre adresse email"
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-senegal-yellow focus:border-transparent"
-                required
-              />
-              <button 
-                type="submit"
-                className="w-full bg-senegal-yellow text-assembly-blue hover:bg-senegal-yellow/90 transition-colors font-medium px-3 py-2 rounded-md"
-              >
-                S'inscrire
-              </button>
-            </form>
           </div>
         </div>
 
