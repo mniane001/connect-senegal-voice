@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Question {
@@ -39,16 +39,29 @@ const QuestionDetailsModal = ({ question, onClose, onStatusUpdate }: QuestionDet
   const [status, setStatus] = useState(question?.status || "submitted");
   const { toast } = useToast();
 
+  // Synchroniser le statut local avec celui de la question quand elle change
+  useEffect(() => {
+    if (question) {
+      setStatus(question.status);
+    }
+  }, [question]);
+
   const handleStatusChange = async (newStatus: string) => {
     if (!question) return;
 
     try {
+      console.log("Mise à jour du statut:", { questionId: question.id, newStatus });
+      
       const { error } = await supabase
         .from("doleances")
         .update({ status: newStatus })
-        .eq("id", question.id);
+        .eq("id", question.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
 
       setStatus(newStatus);
       onStatusUpdate(question.id, newStatus);
