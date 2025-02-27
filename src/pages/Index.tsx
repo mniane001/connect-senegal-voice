@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -22,14 +23,22 @@ const Index = () => {
   const { data: actualites, isLoading } = useQuery({
     queryKey: ["actualites"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("actualites")
-        .select("*")
-        .order("published_at", { ascending: false })
-        .limit(3);
+      try {
+        const { data, error } = await supabase
+          .from("actualites")
+          .select("*")
+          .order("published_at", { ascending: false })
+          .limit(3);
 
-      if (error) throw error;
-      return data as Actualite[];
+        if (error) {
+          console.error("Erreur lors de la récupération des actualités:", error);
+          return [];
+        }
+        return data as Actualite[];
+      } catch (err) {
+        console.error("Erreur lors de la requête:", err);
+        return [];
+      }
     },
   });
 
@@ -142,7 +151,7 @@ const Index = () => {
 
         {/* Actualités Section */}
         <section className="py-16 bg-gray-50">
-          <div className="container-custom">
+          <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-assembly-blue mb-2">
@@ -159,7 +168,7 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="card-official animate-pulse">
+                  <div key={index} className="bg-white rounded-xl shadow overflow-hidden animate-pulse">
                     <div className="h-48 bg-gray-200 rounded-t-xl"></div>
                     <div className="p-6">
                       <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
@@ -169,7 +178,7 @@ const Index = () => {
                   </div>
                 ))
               ) : (
-                actualites?.map((actualite) => (
+                (actualites || []).map((actualite) => (
                   <ActualiteCard key={actualite.id} {...actualite} />
                 ))
               )}
