@@ -1,6 +1,6 @@
 
 {
-    "name": "connect-senegal-voice",
+    "name": "mniane001/connect-senegal-voice",
     "description": "Application React pour Connect Senegal Voice",
     "require": {
         "php": "^8.0"
