@@ -50,22 +50,50 @@ const InitiativesPage = () => {
                   Interrogations formelles adressées au gouvernement sur des sujets spécifiques
                 </p>
                 <div className="space-y-4 mb-6">
-                  {[1, 2, 3].map((_, i) => (
-                    <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
-                      <h3 className="font-bold text-assembly-blue">
-                        Question sur la politique de santé rurale
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Adressée au Ministre de la Santé
-                      </p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">15 Mars 2024</span>
-                        <Link to="#" className="text-assembly-blue hover:underline">
-                          Lire la suite →
-                        </Link>
-                      </div>
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Question sur l'accès aux soins dans les zones rurales
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Adressée au Ministre de la Santé - Manque de personnel médical
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">15 Mars 2024</span>
+                      <Link to="/initiatives/questions-ecrites/1" className="text-assembly-blue hover:underline">
+                        Lire la suite →
+                      </Link>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      État des infrastructures scolaires
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Adressée au Ministre de l'Éducation - Rénovation des écoles
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">10 Mars 2024</span>
+                      <Link to="/initiatives/questions-ecrites/2" className="text-assembly-blue hover:underline">
+                        Lire la suite →
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Programme de développement agricole
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Adressée au Ministre de l'Agriculture - Soutien aux agriculteurs
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">5 Mars 2024</span>
+                      <Link to="/initiatives/questions-ecrites/3" className="text-assembly-blue hover:underline">
+                        Lire la suite →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
@@ -94,22 +122,50 @@ const InitiativesPage = () => {
                   Questions posées directement aux membres du gouvernement lors des séances
                 </p>
                 <div className="space-y-4 mb-6">
-                  {[1, 2, 3].map((_, i) => (
-                    <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
-                      <h3 className="font-bold text-assembly-blue">
-                        Interpellation sur l'accès à l'eau
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Session plénière du 10 février 2024
-                      </p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">10 Février 2024</span>
-                        <Link to="#" className="text-assembly-blue hover:underline">
-                          Voir la vidéo →
-                        </Link>
-                      </div>
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Interpellation sur l'accès à l'eau potable
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Session plénière - Débat sur la distribution d'eau
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">10 Février 2024</span>
+                      <Link to="/initiatives/questions-orales/1" className="text-assembly-blue hover:underline">
+                        Voir la vidéo →
+                      </Link>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      La situation de l'emploi des jeunes
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Session plénière - Politique de l'emploi
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">5 Février 2024</span>
+                      <Link to="/initiatives/questions-orales/2" className="text-assembly-blue hover:underline">
+                        Voir la vidéo →
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Débat sur la politique énergétique
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Session plénière - Transition énergétique
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">1 Février 2024</span>
+                      <Link to="/initiatives/questions-orales/3" className="text-assembly-blue hover:underline">
+                        Voir la vidéo →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
@@ -138,22 +194,35 @@ const InitiativesPage = () => {
                   Initiatives pour la création de commissions d'investigation parlementaire
                 </p>
                 <div className="space-y-4 mb-6">
-                  {[1, 2].map((_, i) => (
-                    <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
-                      <h3 className="font-bold text-assembly-blue">
-                        Commission sur la gestion des ressources minières
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Proposition déposée le 5 janvier 2024
-                      </p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">5 Janvier 2024</span>
-                        <Link to="#" className="text-assembly-blue hover:underline">
-                          Voir le dossier →
-                        </Link>
-                      </div>
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Commission sur la gestion des ressources minières
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Transparence et équité dans le secteur minier
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">5 Janvier 2024</span>
+                      <Link to="/initiatives/commissions-enquete/1" className="text-assembly-blue hover:underline">
+                        Voir le dossier →
+                      </Link>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Enquête sur la gestion des fonds COVID-19
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Utilisation des ressources pendant la pandémie
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">15 Décembre 2023</span>
+                      <Link to="/initiatives/commissions-enquete/2" className="text-assembly-blue hover:underline">
+                        Voir le dossier →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
@@ -182,22 +251,35 @@ const InitiativesPage = () => {
                   Textes législatifs proposés pour améliorer le cadre juridique
                 </p>
                 <div className="space-y-4 mb-6">
-                  {[1, 2].map((_, i) => (
-                    <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
-                      <h3 className="font-bold text-assembly-blue">
-                        Loi sur la transparence des industries extractives
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        En cours d'examen en commission
-                      </p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">20 Décembre 2023</span>
-                        <Link to="#" className="text-assembly-blue hover:underline">
-                          Lire le projet →
-                        </Link>
-                      </div>
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Loi sur la transparence des industries extractives
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Renforcement du cadre de gouvernance
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">20 Décembre 2023</span>
+                      <Link to="/initiatives/propositions-loi/1" className="text-assembly-blue hover:underline">
+                        Lire le projet →
+                      </Link>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="border-l-4 border-assembly-blue p-4 bg-gray-50">
+                    <h3 className="font-bold text-assembly-blue">
+                      Protection des lanceurs d'alerte
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Cadre juridique pour la protection des dénonciateurs
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">10 Décembre 2023</span>
+                      <Link to="/initiatives/propositions-loi/2" className="text-assembly-blue hover:underline">
+                        Lire le projet →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
