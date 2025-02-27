@@ -13,67 +13,6 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f8f9fa;
-        color: #333;
-      }
-      
-      header {
-        background: linear-gradient(rgba(0, 51, 102, 0.8), rgba(0, 51, 102, 0.8)), 
-                    url('https://images.unsplash.com/photo-1576767968242-4f685d2a5187?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
-        color: white;
-        text-align: center;
-        padding: 100px 20px;
-      }
-      
-      h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-      }
-      
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 40px 20px;
-      }
-      
-      .contact {
-        background-color: #003366;
-        color: white;
-        text-align: center;
-        padding: 40px 20px;
-      }
-      
-      .btn {
-        display: inline-block;
-        background-color: #FBC02D;
-        color: #003366;
-        padding: 12px 24px;
-        text-decoration: none;
-        border-radius: 4px;
-        font-weight: bold;
-        margin-top: 20px;
-      }
-      
-      footer {
-        background-color: #002244;
-        color: white;
-        text-align: center;
-        padding: 20px;
-      }
-      
-      .notification {
-        background-color: #FBC02D;
-        color: #003366;
-        text-align: center;
-        padding: 10px;
-        font-weight: bold;
-      }
-      
-      .alternative-link {
-        color: #003366;
-        text-decoration: underline;
-        font-weight: bold;
       }
       
       .flag-stripe {
@@ -95,6 +34,42 @@
         background-color: #E31B23;
         width: 33.33%;
       }
+      
+      #loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        padding: 0 20px;
+      }
+      
+      #loading h1 {
+        font-family: 'Playfair Display', serif;
+        color: #003366;
+        margin-bottom: 1rem;
+      }
+      
+      #loading p {
+        color: #555;
+        margin-bottom: 1.5rem;
+      }
+      
+      .spinner {
+        border: 4px solid rgba(0, 51, 102, 0.1);
+        border-radius: 50%;
+        border-top: 4px solid #FBC02D;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -103,86 +78,16 @@
       <div class="stripe-yellow"></div>
       <div class="stripe-red"></div>
     </div>
-    
+
     <div id="root">
-      <header>
+      <div id="loading">
+        <div class="spinner"></div>
         <h1>Guy Marius Sagna</h1>
-        <p>Député à l'Assemblée nationale du Sénégal, engagé pour la justice sociale et le développement équitable.</p>
-      </header>
-      
-      <div class="notification">
-        Le site complet sera bientôt disponible. Merci de votre patience.
-        <a href="fallback.html" class="alternative-link">Version alternative du site</a>
+        <p>Chargement du site officiel...</p>
       </div>
-      
-      <div class="container">
-        <h2>Message de bienvenue</h2>
-        <p>Chers compatriotes, chers visiteurs, je vous souhaite la bienvenue sur mon site officiel. 
-        En tant que votre représentant à l'Assemblée nationale, je m'engage à porter votre voix 
-        et à défendre vos intérêts avec détermination et intégrité.</p>
-        
-        <p>Mon engagement politique est ancré dans la conviction profonde que notre pays mérite 
-        un développement équitable, une justice sociale renforcée et une gouvernance transparente 
-        au service des citoyens.</p>
-      </div>
-      
-      <div class="contact">
-        <h2>Contactez-moi</h2>
-        <p>Votre voix compte. Ensemble, nous pouvons bâtir un avenir meilleur pour tous les Sénégalais.</p>
-        <a href="mailto:contact@guymaruis.sn" class="btn">Envoyez un message</a>
-      </div>
-      
-      <footer>
-        <p>&copy; 2023 Guy Marius Sagna. Tous droits réservés.</p>
-      </footer>
     </div>
 
-    <!-- Chargement de React et React DOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Notre application - Vérifier d'abord si nous sommes en mode développement ou production -->
-    <script>
-      // Détecter si nous sommes en mode développement local ou sur le serveur de production
-      const isLocalDevelopment = 
-        window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1';
-      
-      if (isLocalDevelopment) {
-        // En développement, utiliser le chargement de module dynamique
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.textContent = `
-          import('./src/main.tsx')
-            .then(() => {
-              console.log("Module principal chargé avec succès");
-            })
-            .catch(error => {
-              console.error("Erreur lors du chargement du module principal:", error);
-              // Ne pas appeler showFallbackUI() car nous avons déjà la page statique
-            });
-        `;
-        document.body.appendChild(script);
-      } else {
-        // En production, nous affichons déjà la page statique
-        console.log("Affichage de la page statique en attendant le site complet");
-        
-        // Le code pour charger l'application React reste commenté jusqu'à ce que le build soit corrigé
-        /*
-        const script = document.createElement('script');
-        script.src = 'assets/index.js';
-        script.onload = function() {
-          console.log("Script compilé chargé avec succès");
-        };
-        script.onerror = function() {
-          console.error("Erreur lors du chargement du script compilé");
-          // Ne pas appeler showFallbackUI() car nous avons déjà la page statique
-        };
-        document.body.appendChild(script);
-        */
-      }
-      
-      // La fonction showFallbackUI n'est plus nécessaire car nous avons directement le HTML dans la page
-    </script>
+    <!-- Scripts -->
+    <script type="text/javascript" src="dist/assets/index.js" defer></script>
   </body>
 </html>
