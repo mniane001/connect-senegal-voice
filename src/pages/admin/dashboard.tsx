@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardStats from "@/components/admin/DashboardStats";
 import QuestionFilters from "@/components/admin/QuestionFilters";
+import RencontreFilters from "@/components/admin/RencontreFilters";
 import QuestionList from "@/components/admin/QuestionList";
 import RencontreList from "@/components/admin/RencontreList";
 import QuestionDetailsModal from "@/components/admin/QuestionDetailsModal";
@@ -35,21 +36,22 @@ interface Rencontre {
 }
 
 const DashboardPage = () => {
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [questionStatusFilter, setQuestionStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [rencontreStatusFilter, setRencontreStatusFilter] = useState<string>("all");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: questions, isLoading: loadingQuestions } = useQuery({
-    queryKey: ["questions", statusFilter, categoryFilter],
+  const { data: questions } = useQuery({
+    queryKey: ["questions", questionStatusFilter, categoryFilter],
     queryFn: async () => {
       let query = supabase
         .from("doleances")
         .select("*");
 
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+      if (questionStatusFilter !== "all") {
+        query = query.eq("status", questionStatusFilter);
       }
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
@@ -61,25 +63,41 @@ const DashboardPage = () => {
     },
   });
 
-  const { data: rencontres, isLoading: loadingRencontres } = useQuery({
-    queryKey: ["rencontres"],
+  const { data: rencontres } = useQuery({
+    queryKey: ["rencontres", rencontreStatusFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("audiences")
         .select("*");
+
+      if (rencontreStatusFilter !== "all") {
+        query = query.eq("status", rencontreStatusFilter);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Rencontre[];
     },
   });
 
-  const handleStatusUpdate = async (questionId: string, newStatus: string) => {
-    // Mettre à jour le cache de React Query avec la nouvelle valeur
-    queryClient.setQueryData(["questions", statusFilter, categoryFilter], (oldData: Question[] | undefined) => {
+  const handleQuestionStatusUpdate = async (questionId: string, newStatus: string) => {
+    queryClient.setQueryData(["questions", questionStatusFilter, categoryFilter], (oldData: Question[] | undefined) => {
       if (!oldData) return oldData;
       return oldData.map(question => 
         question.id === questionId 
           ? { ...question, status: newStatus }
           : question
+      );
+    });
+  };
+
+  const handleRencontreStatusUpdate = async (rencontreId: string, newStatus: string) => {
+    queryClient.setQueryData(["rencontres", rencontreStatusFilter], (oldData: Rencontre[] | undefined) => {
+      if (!oldData) return oldData;
+      return oldData.map(rencontre => 
+        rencontre.id === rencontreId 
+          ? { ...rencontre, status: newStatus }
+          : rencontre
       );
     });
   };
@@ -100,33 +118,46 @@ const DashboardPage = () => {
 
         <DashboardStats {...stats} />
 
-        <QuestionFilters
-          statusFilter={statusFilter}
-          categoryFilter={categoryFilter}
-          onStatusChange={setStatusFilter}
-          onCategoryChange={setCategoryFilter}
-        />
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Questions écrites</h2>
+          <QuestionFilters
+            statusFilter={questionStatusFilter}
+            categoryFilter={categoryFilter}
+            onStatusChange={setQuestionStatusFilter}
+            onCategoryChange={setCategoryFilter}
+          />
 
-        <QuestionList 
-          questions={questions || []} 
-          onViewDetails={setSelectedQuestion}
-          onStatusUpdate={handleStatusUpdate}
-        />
+          <QuestionList 
+            questions={questions || []} 
+            onViewDetails={setSelectedQuestion}
+            onStatusUpdate={handleQuestionStatusUpdate}
+          />
+        </div>
 
-        <RencontreList 
-          rencontres={rencontres || []} 
-          onViewDetails={setSelectedRencontre}
-        />
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Demandes de rencontre</h2>
+          <RencontreFilters
+            statusFilter={rencontreStatusFilter}
+            onStatusChange={setRencontreStatusFilter}
+          />
+
+          <RencontreList 
+            rencontres={rencontres || []} 
+            onViewDetails={setSelectedRencontre}
+            onStatusUpdate={handleRencontreStatusUpdate}
+          />
+        </div>
 
         <QuestionDetailsModal
           question={selectedQuestion}
           onClose={() => setSelectedQuestion(null)}
-          onStatusUpdate={handleStatusUpdate}
+          onStatusUpdate={handleQuestionStatusUpdate}
         />
 
         <RencontreDetailsModal
           rencontre={selectedRencontre}
           onClose={() => setSelectedRencontre(null)}
+          onStatusUpdate={handleRencontreStatusUpdate}
         />
       </div>
 
