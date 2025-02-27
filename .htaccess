@@ -13,8 +13,12 @@
 <IfModule mod_mime.c>
   AddType application/javascript .js
   AddType application/javascript .mjs
+  AddType application/javascript .tsx
+  AddType application/javascript .ts
   AddType text/javascript .js
   AddType text/javascript .mjs
+  AddType text/javascript .tsx
+  AddType text/javascript .ts
   AddType application/json .json
   AddType text/css .css
   AddType text/html .html .htm
@@ -54,7 +58,7 @@ DirectoryIndex index.html
 
 # Permettre l'exécution des fichiers JavaScript en tant que modules
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|mjs)$">
+  <FilesMatch "\.(js|mjs|tsx|ts)$">
     Header set Content-Type "application/javascript"
   </FilesMatch>
 </IfModule>
