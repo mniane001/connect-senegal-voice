@@ -1,11 +1,30 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, UserCircle } from "lucide-react";
 import { Link } from 'react-router-dom';
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .rpc('is_admin', { user_id: user.id });
+        
+        if (!error && data) {
+          setIsAdmin(true);
+        }
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   const menuItems = [
     { title: "Biographie", href: "/biographie" },
@@ -36,7 +55,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex space-x-4">
             <Button
               variant="default"
               className="bg-senegal-green hover:bg-senegal-green/90 text-white"
@@ -44,6 +63,41 @@ const Navbar = () => {
             >
               <Link to="/audience">Demander une rencontre</Link>
             </Button>
+
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    className="border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                    asChild
+                  >
+                    <Link to="/admin/dashboard">
+                      Dashboard
+                    </Link>
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  className="text-gray-600"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  <UserCircle className="mr-2 h-5 w-5" />
+                  Se déconnecter
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                asChild
+              >
+                <Link to="/auth">
+                  <UserCircle className="mr-2 h-5 w-5" />
+                  Se connecter
+                </Link>
+              </Button>
+            )}
           </div>
 
           <button
@@ -54,7 +108,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Menu mobile */}
         {isOpen && (
           <div className="md:hidden px-2 pt-2 pb-3 space-y-1 animate-fade-in">
             {menuItems.map((item) => (
@@ -67,7 +121,7 @@ const Navbar = () => {
                 {item.title}
               </Link>
             ))}
-            <div className="px-3 py-2">
+            <div className="px-3 py-2 space-y-2">
               <Button
                 variant="default"
                 className="w-full bg-senegal-green hover:bg-senegal-green/90 text-white"
@@ -75,6 +129,41 @@ const Navbar = () => {
               >
                 <Link to="/audience">Demander une rencontre</Link>
               </Button>
+
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                      asChild
+                    >
+                      <Link to="/admin/dashboard">
+                        Dashboard
+                      </Link>
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className="w-full text-gray-600"
+                    onClick={() => supabase.auth.signOut()}
+                  >
+                    <UserCircle className="mr-2 h-5 w-5" />
+                    Se déconnecter
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                  asChild
+                >
+                  <Link to="/auth">
+                    <UserCircle className="mr-2 h-5 w-5" />
+                    Se connecter
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -84,4 +173,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

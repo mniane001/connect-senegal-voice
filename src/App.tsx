@@ -1,82 +1,83 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import Index from "@/pages/Index";
+import AuthPage from "@/pages/auth";
+import BiographiePage from "@/pages/biographie";
+import ActualitesPage from "@/pages/actualites";
+import ActualitePage from "@/pages/actualites/[id]";
+import InitiativesPage from "@/pages/initiatives";
+import QuestionsOralesPage from "@/pages/initiatives/questions-orales";
+import QuestionOralePage from "@/pages/initiatives/questions-orales/[id]";
+import QuestionsEcritesPage from "@/pages/initiatives/questions-ecrites";
+import QuestionEcritePage from "@/pages/initiatives/questions-ecrites/[id]";
+import PropositionsLoiPage from "@/pages/initiatives/propositions-loi";
+import PropositionLoiPage from "@/pages/initiatives/propositions-loi/[id]";
+import CommissionsEnquetePage from "@/pages/initiatives/commissions-enquete";
+import CommissionEnquetePage from "@/pages/initiatives/commissions-enquete/[id]";
+import DoleancesPage from "@/pages/doleances";
+import AudiencePage from "@/pages/audience";
+import DashboardPage from "@/pages/admin/dashboard";
+import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/auth";
-import DoleancesPage from "./pages/doleances";
-import AudiencePage from "./pages/audience";
-import ActualitesPage from "./pages/actualites";
-import ActualitePage from "./pages/actualites/[id]";
-import InitiativesPage from "./pages/initiatives";
-import QuestionsEcritesPage from "./pages/initiatives/questions-ecrites";
-import QuestionEcriteDetailPage from "./pages/initiatives/questions-ecrites/[id]";
-import QuestionsOralesPage from "./pages/initiatives/questions-orales";
-import QuestionOraleDetailPage from "./pages/initiatives/questions-orales/[id]";
-import CommissionsEnquetePage from "./pages/initiatives/commissions-enquete";
-import CommissionEnqueteDetailPage from "./pages/initiatives/commissions-enquete/[id]";
-import PropositionsLoiPage from "./pages/initiatives/propositions-loi";
-import PropositionLoiDetailPage from "./pages/initiatives/propositions-loi/[id]";
-import BiographiePage from "./pages/biographie";
+import AdminRoute from "@/components/AdminRoute";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Create a client
+const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <Router>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/biographie" element={<BiographiePage />} />
             <Route path="/actualites" element={<ActualitesPage />} />
             <Route path="/actualites/:id" element={<ActualitePage />} />
             <Route path="/initiatives" element={<InitiativesPage />} />
-            <Route path="/initiatives/questions-ecrites" element={<QuestionsEcritesPage />} />
-            <Route path="/initiatives/questions-ecrites/:id" element={<QuestionEcriteDetailPage />} />
             <Route path="/initiatives/questions-orales" element={<QuestionsOralesPage />} />
-            <Route path="/initiatives/questions-orales/:id" element={<QuestionOraleDetailPage />} />
-            <Route path="/initiatives/commissions-enquete" element={<CommissionsEnquetePage />} />
-            <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnqueteDetailPage />} />
+            <Route path="/initiatives/questions-orales/:id" element={<QuestionOralePage />} />
+            <Route path="/initiatives/questions-ecrites" element={<QuestionsEcritesPage />} />
+            <Route path="/initiatives/questions-ecrites/:id" element={<QuestionEcritePage />} />
             <Route path="/initiatives/propositions-loi" element={<PropositionsLoiPage />} />
-            <Route path="/initiatives/propositions-loi/:id" element={<PropositionLoiDetailPage />} />
-            <Route path="/biographie" element={<BiographiePage />} />
-            <Route
-              path="/doleances"
+            <Route path="/initiatives/propositions-loi/:id" element={<PropositionLoiPage />} />
+            <Route path="/initiatives/commissions-enquete" element={<CommissionsEnquetePage />} />
+            <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnquetePage />} />
+            <Route 
+              path="/doleances" 
               element={
                 <ProtectedRoute>
                   <DoleancesPage />
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/audience"
+            <Route 
+              path="/audience" 
               element={
                 <ProtectedRoute>
                   <AudiencePage />
                 </ProtectedRoute>
+              } 
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <AdminRoute>
+                  <DashboardPage />
+                </AdminRoute>
               }
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
+        </Router>
+        <Toaster />
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;
