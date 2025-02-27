@@ -13,33 +13,57 @@
   <body>
     <div id="root"></div>
 
-    <!-- Chargement des scripts - Ajout de type="module" pour gptengineer.js -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    
     <!-- Chargement de React et React DOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Notre application - Utilisant un script traditionnel -->
-    <script type="module">
-      // Import dynamic
-      import('./src/main.tsx')
-        .then(() => {
-          console.log("Module principal chargé avec succès");
-        })
-        .catch(error => {
-          console.error("Erreur lors du chargement du module principal:", error);
-          
-          // Afficher une interface utilisateur de secours en cas d'échec
-          document.getElementById('root').innerHTML = `
-            <div style="text-align: center; margin: 50px auto; max-width: 600px;">
-              <h1>Guy Marius Sagna</h1>
-              <p>Député à l'Assemblée nationale du Sénégal</p>
-              <p>Le site complet sera bientôt disponible. Merci de votre patience.</p>
-              <a href="fallback.html">Version alternative du site</a>
-            </div>
-          `;
-        });
+    <!-- Notre application - Vérifier d'abord si nous sommes en mode développement ou production -->
+    <script>
+      // Détecter si nous sommes en mode développement local ou sur le serveur de production
+      const isLocalDevelopment = 
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1';
+      
+      if (isLocalDevelopment) {
+        // En développement, utiliser le chargement de module dynamique
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.textContent = `
+          import('./src/main.tsx')
+            .then(() => {
+              console.log("Module principal chargé avec succès");
+            })
+            .catch(error => {
+              console.error("Erreur lors du chargement du module principal:", error);
+              showFallbackUI();
+            });
+        `;
+        document.body.appendChild(script);
+      } else {
+        // En production, charger le script compilé
+        const script = document.createElement('script');
+        script.src = './dist/assets/index.js';
+        script.onload = function() {
+          console.log("Script compilé chargé avec succès");
+        };
+        script.onerror = function() {
+          console.error("Erreur lors du chargement du script compilé");
+          showFallbackUI();
+        };
+        document.body.appendChild(script);
+      }
+      
+      function showFallbackUI() {
+        // Afficher une interface utilisateur de secours en cas d'échec
+        document.getElementById('root').innerHTML = `
+          <div style="text-align: center; margin: 50px auto; max-width: 600px;">
+            <h1>Guy Marius Sagna</h1>
+            <p>Député à l'Assemblée nationale du Sénégal</p>
+            <p>Le site complet sera bientôt disponible. Merci de votre patience.</p>
+            <a href="fallback.html">Version alternative du site</a>
+          </div>
+        `;
+      }
     </script>
   </body>
 </html>
