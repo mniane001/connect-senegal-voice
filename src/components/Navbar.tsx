@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X, UserCircle } from "lucide-react";
@@ -14,12 +13,10 @@ const Navbar = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .rpc('is_admin', { user_id: user.id });
         
-        if (!error && data) {
-          setIsAdmin(true);
-        }
+        setIsAdmin(!!data);
       }
     };
 

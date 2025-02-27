@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -29,15 +29,36 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Users, MessageSquare, Calendar, BarChart } from "lucide-react";
+import { Users, MessageSquare, Calendar } from "lucide-react";
+
+interface Doleance {
+  id: string;
+  created_at: string;
+  name: string;
+  category: string;
+  status: string;
+  title: string;
+  description: string;
+  email: string;
+}
+
+interface Audience {
+  id: string;
+  created_at: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+}
 
 const DashboardPage = () => {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [themeFilter, setThemeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   // Récupérer les doléances
   const { data: doleances, isLoading: loadingDoleances } = useQuery({
-    queryKey: ["doleances", statusFilter, themeFilter],
+    queryKey: ["doleances", statusFilter, categoryFilter],
     queryFn: async () => {
       let query = supabase
         .from("doleances")
@@ -46,13 +67,13 @@ const DashboardPage = () => {
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
       }
-      if (themeFilter !== "all") {
-        query = query.eq("theme", themeFilter);
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as Doleance[];
     },
   });
 
@@ -64,7 +85,7 @@ const DashboardPage = () => {
         .from("audiences")
         .select("*");
       if (error) throw error;
-      return data;
+      return data as Audience[];
     },
   });
 
@@ -133,14 +154,14 @@ const DashboardPage = () => {
             </SelectContent>
           </Select>
 
-          <Select value={themeFilter} onValueChange={setThemeFilter}>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrer par thème" />
+              <SelectValue placeholder="Filtrer par catégorie" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Thème</SelectLabel>
-                <SelectItem value="all">Tous</SelectItem>
+                <SelectLabel>Catégorie</SelectLabel>
+                <SelectItem value="all">Toutes</SelectItem>
                 <SelectItem value="education">Éducation</SelectItem>
                 <SelectItem value="sante">Santé</SelectItem>
                 <SelectItem value="infrastructure">Infrastructure</SelectItem>
@@ -164,7 +185,7 @@ const DashboardPage = () => {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Nom</TableHead>
-                  <TableHead>Thème</TableHead>
+                  <TableHead>Catégorie</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -176,7 +197,7 @@ const DashboardPage = () => {
                       {new Date(doleance.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{doleance.name}</TableCell>
-                    <TableCell>{doleance.theme || "Non catégorisé"}</TableCell>
+                    <TableCell>{doleance.category || "Non catégorisé"}</TableCell>
                     <TableCell>
                       <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         ${

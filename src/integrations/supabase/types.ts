@@ -98,6 +98,7 @@ export type Database = {
           name: string
           response: string | null
           status: string | null
+          theme: string | null
           title: string
         }
         Insert: {
@@ -110,6 +111,7 @@ export type Database = {
           name: string
           response?: string | null
           status?: string | null
+          theme?: string | null
           title: string
         }
         Update: {
@@ -122,7 +124,29 @@ export type Database = {
           name?: string
           response?: string | null
           status?: string | null
+          theme?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -131,10 +155,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
