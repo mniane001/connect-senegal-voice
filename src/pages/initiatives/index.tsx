@@ -1,6 +1,7 @@
 
 import { FileText, MessageSquare, Users, BookOpen } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import HeroSection from "@/components/initiatives/HeroSection";
 import InitiativeCard from "@/components/initiatives/InitiativeCard";
 
@@ -128,6 +129,8 @@ const InitiativesPage = () => {
           <InitiativeCard {...propositionsLoi} />
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

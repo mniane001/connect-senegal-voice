@@ -1,6 +1,6 @@
-
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Users, Calendar, User, FileText } from "lucide-react";
 
 const CommissionEnqueteDetailPage = () => {
@@ -95,6 +95,7 @@ const CommissionEnqueteDetailPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

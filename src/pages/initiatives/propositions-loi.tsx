@@ -1,7 +1,7 @@
-
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { BookOpen } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const PropositionsLoiPage = () => {
   const propositions = [
@@ -90,6 +90,8 @@ const PropositionsLoiPage = () => {
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

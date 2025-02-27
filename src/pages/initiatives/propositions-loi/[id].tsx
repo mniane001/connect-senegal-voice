@@ -1,6 +1,6 @@
-
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { BookOpen, Calendar, User, FileCheck } from "lucide-react";
 
 const PropositionLoiDetailPage = () => {
@@ -90,6 +90,7 @@ const PropositionLoiDetailPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
