@@ -22,8 +22,6 @@ const Navbar = () => {
             console.error('Erreur de vérification admin:', error);
             return;
           }
-          
-          console.log('Résultat is_admin:', data); // Pour le débogage
           setIsAdmin(!!data);
         } catch (error) {
           console.error('Erreur lors de la vérification admin:', error);

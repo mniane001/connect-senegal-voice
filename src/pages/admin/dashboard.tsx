@@ -9,6 +9,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -31,34 +38,38 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Users, MessageSquare, Calendar } from "lucide-react";
 
-interface Doleance {
+interface Question {
   id: string;
   created_at: string;
   name: string;
+  email: string;
   category: string;
   status: string;
   title: string;
   description: string;
-  email: string;
 }
 
-interface Audience {
+interface Rencontre {
   id: string;
   created_at: string;
   name: string;
   email: string;
+  phone?: string;
   subject: string;
   message: string;
   status: string;
+  meeting_date?: string;
 }
 
 const DashboardPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+  const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
 
-  // Récupérer les doléances
-  const { data: doleances, isLoading: loadingDoleances } = useQuery({
-    queryKey: ["doleances", statusFilter, categoryFilter],
+  // Récupérer les questions écrites
+  const { data: questions, isLoading: loadingQuestions } = useQuery({
+    queryKey: ["questions", statusFilter, categoryFilter],
     queryFn: async () => {
       let query = supabase
         .from("doleances")
@@ -73,28 +84,28 @@ const DashboardPage = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Doleance[];
+      return data as Question[];
     },
   });
 
-  // Récupérer les demandes d'audience
-  const { data: audiences, isLoading: loadingAudiences } = useQuery({
-    queryKey: ["audiences"],
+  // Récupérer les demandes de rencontre
+  const { data: rencontres, isLoading: loadingRencontres } = useQuery({
+    queryKey: ["rencontres"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audiences")
         .select("*");
       if (error) throw error;
-      return data as Audience[];
+      return data as Rencontre[];
     },
   });
 
   // Calculer les statistiques
   const stats = {
-    totalDoleances: doleances?.length || 0,
-    totalAudiences: audiences?.length || 0,
-    doleancesEnAttente: doleances?.filter(d => d.status === "submitted").length || 0,
-    audiencesEnAttente: audiences?.filter(a => a.status === "pending").length || 0,
+    totalQuestions: questions?.length || 0,
+    totalRencontres: rencontres?.length || 0,
+    questionsEnAttente: questions?.filter(d => d.status === "submitted").length || 0,
+    rencontresEnAttente: rencontres?.filter(a => a.status === "pending").length || 0,
   };
 
   return (
@@ -109,14 +120,14 @@ const DashboardPage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Doléances
+                Total Questions Écrites
               </CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalDoleances}</div>
+              <div className="text-2xl font-bold">{stats.totalQuestions}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.doleancesEnAttente} en attente
+                {stats.questionsEnAttente} en attente
               </p>
             </CardContent>
           </Card>
@@ -124,14 +135,14 @@ const DashboardPage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Demandes d'audience
+                Demandes de rencontre
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalAudiences}</div>
+              <div className="text-2xl font-bold">{stats.totalRencontres}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.audiencesEnAttente} en attente
+                {stats.rencontresEnAttente} en attente
               </p>
             </CardContent>
           </Card>
@@ -171,12 +182,12 @@ const DashboardPage = () => {
           </Select>
         </div>
 
-        {/* Table des doléances */}
+        {/* Table des questions écrites */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Doléances récentes</CardTitle>
+            <CardTitle>Questions écrites récentes</CardTitle>
             <CardDescription>
-              Liste des doléances soumises par les citoyens
+              Liste des questions écrites soumises par les citoyens
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -191,31 +202,35 @@ const DashboardPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {doleances?.map((doleance) => (
-                  <TableRow key={doleance.id}>
+                {questions?.map((question) => (
+                  <TableRow key={question.id}>
                     <TableCell>
-                      {new Date(doleance.created_at).toLocaleDateString()}
+                      {new Date(question.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{doleance.name}</TableCell>
-                    <TableCell>{doleance.category || "Non catégorisé"}</TableCell>
+                    <TableCell>{question.name}</TableCell>
+                    <TableCell>{question.category || "Non catégorisé"}</TableCell>
                     <TableCell>
                       <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         ${
-                          doleance.status === "submitted"
+                          question.status === "submitted"
                             ? "bg-yellow-100 text-yellow-800"
-                            : doleance.status === "in_progress"
+                            : question.status === "in_progress"
                             ? "bg-blue-100 text-blue-800"
                             : "bg-green-100 text-green-800"
                         }`}>
-                        {doleance.status === "submitted"
+                        {question.status === "submitted"
                           ? "Soumis"
-                          : doleance.status === "in_progress"
+                          : question.status === "in_progress"
                           ? "En cours"
                           : "Complété"}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedQuestion(question)}
+                      >
                         Voir détails
                       </Button>
                     </TableCell>
@@ -226,10 +241,10 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Table des audiences */}
+        {/* Table des rencontres */}
         <Card>
           <CardHeader>
-            <CardTitle>Demandes d'audience</CardTitle>
+            <CardTitle>Demandes de rencontre</CardTitle>
             <CardDescription>
               Liste des demandes de rencontre
             </CardDescription>
@@ -246,31 +261,35 @@ const DashboardPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {audiences?.map((audience) => (
-                  <TableRow key={audience.id}>
+                {rencontres?.map((rencontre) => (
+                  <TableRow key={rencontre.id}>
                     <TableCell>
-                      {new Date(audience.created_at).toLocaleDateString()}
+                      {new Date(rencontre.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{audience.name}</TableCell>
-                    <TableCell>{audience.subject}</TableCell>
+                    <TableCell>{rencontre.name}</TableCell>
+                    <TableCell>{rencontre.subject}</TableCell>
                     <TableCell>
                       <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         ${
-                          audience.status === "pending"
+                          rencontre.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : audience.status === "approved"
+                            : rencontre.status === "approved"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}>
-                        {audience.status === "pending"
+                        {rencontre.status === "pending"
                           ? "En attente"
-                          : audience.status === "approved"
+                          : rencontre.status === "approved"
                           ? "Approuvé"
                           : "Refusé"}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedRencontre(rencontre)}
+                      >
                         Voir détails
                       </Button>
                     </TableCell>
@@ -280,6 +299,80 @@ const DashboardPage = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Modal pour les détails d'une question */}
+        <Dialog open={!!selectedQuestion} onOpenChange={() => setSelectedQuestion(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{selectedQuestion?.title}</DialogTitle>
+              <DialogDescription className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div>
+                    <p className="font-semibold">Soumis par</p>
+                    <p>{selectedQuestion?.name}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Email</p>
+                    <p>{selectedQuestion?.email}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Catégorie</p>
+                    <p>{selectedQuestion?.category}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Date de soumission</p>
+                    <p>{selectedQuestion?.created_at && new Date(selectedQuestion.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold">Description</p>
+                  <p className="mt-2 whitespace-pre-wrap">{selectedQuestion?.description}</p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal pour les détails d'une rencontre */}
+        <Dialog open={!!selectedRencontre} onOpenChange={() => setSelectedRencontre(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Demande de rencontre : {selectedRencontre?.subject}</DialogTitle>
+              <DialogDescription className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div>
+                    <p className="font-semibold">Demandé par</p>
+                    <p>{selectedRencontre?.name}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Email</p>
+                    <p>{selectedRencontre?.email}</p>
+                  </div>
+                  {selectedRencontre?.phone && (
+                    <div>
+                      <p className="font-semibold">Téléphone</p>
+                      <p>{selectedRencontre.phone}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold">Date de la demande</p>
+                    <p>{selectedRencontre?.created_at && new Date(selectedRencontre.created_at).toLocaleDateString()}</p>
+                  </div>
+                  {selectedRencontre?.meeting_date && (
+                    <div>
+                      <p className="font-semibold">Date de rencontre proposée</p>
+                      <p>{new Date(selectedRencontre.meeting_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold">Message</p>
+                  <p className="mt-2 whitespace-pre-wrap">{selectedRencontre?.message}</p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Footer />
