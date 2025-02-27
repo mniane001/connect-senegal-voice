@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,9 @@ import QuestionList from "@/components/admin/QuestionList";
 import RencontreList from "@/components/admin/RencontreList";
 import QuestionDetailsModal from "@/components/admin/QuestionDetailsModal";
 import RencontreDetailsModal from "@/components/admin/RencontreDetailsModal";
+import CreateQuestionModal from "@/components/admin/CreateQuestionModal";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface Question {
   id: string;
@@ -41,6 +43,7 @@ const DashboardPage = () => {
   const [rencontreStatusFilter, setRencontreStatusFilter] = useState<string>("all");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: questions } = useQuery({
@@ -119,7 +122,14 @@ const DashboardPage = () => {
         <DashboardStats {...stats} />
 
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Questions écrites</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Questions écrites</h2>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouvelle question
+            </Button>
+          </div>
+          
           <QuestionFilters
             statusFilter={questionStatusFilter}
             categoryFilter={categoryFilter}
@@ -158,6 +168,14 @@ const DashboardPage = () => {
           rencontre={selectedRencontre}
           onClose={() => setSelectedRencontre(null)}
           onStatusUpdate={handleRencontreStatusUpdate}
+        />
+
+        <CreateQuestionModal 
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onQuestionCreated={() => {
+            queryClient.invalidateQueries({ queryKey: ["questions"] });
+          }}
         />
       </div>
 

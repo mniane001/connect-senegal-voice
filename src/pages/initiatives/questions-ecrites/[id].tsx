@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { FileText, Calendar, User, Building2 } from "lucide-react";
@@ -54,7 +55,7 @@ const QuestionEcriteDetailPage = () => {
 
               <div className="mt-8 flex items-center justify-between">
                 <span className="text-sm px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-                  Statut: En attente de réponse
+                  En attente de réponse
                 </span>
                 <div className="flex gap-2">
                   <button className="text-assembly-blue hover:underline text-sm">
