@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -14,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ActualiteCard from "@/components/actualites/ActualiteCard";
 
 interface Actualite {
   id: string;
@@ -80,42 +80,36 @@ const ActualitesPage = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-24">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg animate-pulse">
-                <div className="w-full aspect-video bg-gray-200 rounded-t-xl"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-24">
-        <div className="text-center mb-16">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Actualités & activités
+      {/* Hero Section */}
+      <div 
+        className="relative bg-cover bg-center py-24 md:py-32" 
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 51, 102, 0.7), rgba(0, 51, 102, 0.7)), url("https://images.unsplash.com/photo-1575517111839-3a3843ee7f5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")`
+        }}
+      >
+        <div className="container-custom text-center text-white">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            Actualités & Activités
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Restez informé des dernières nouvelles et activités concernant le New Deal Technologique
-            et la transformation digitale du Sénégal.
+          <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">
+            Suivez mes actions et prises de position sur les enjeux nationaux
           </p>
         </div>
+        <div className="absolute bottom-0 left-0 right-0">
+          <div className="flex h-3">
+            <div className="w-1/3 bg-senegal-green"></div>
+            <div className="w-1/3 bg-senegal-yellow"></div>
+            <div className="w-1/3 bg-senegal-red"></div>
+          </div>
+        </div>
+      </div>
 
+      <main className="container-custom py-16">
+        {/* Filtres */}
         <div className="mb-12 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -144,47 +138,27 @@ const ActualitesPage = () => {
           </Select>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {data?.items.map((actualite) => (
-            <div 
-              key={actualite.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
-            >
-              <img
-                src={actualite.image_url || "/placeholder.svg"}
-                alt={actualite.title}
-                className="w-full aspect-video object-cover"
-              />
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
-                    {actualite.category}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {formatDate(actualite.published_at)}
-                  </span>
+        {/* Liste des actualités */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="card-official animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-t-xl"></div>
+                <div className="p-6">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                 </div>
-                <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
-                  {actualite.title}
-                </h3>
-                <p className="text-gray-600 mb-4 line-clamp-3">
-                  {actualite.excerpt || actualite.content}
-                </p>
-                <Button
-                  variant="link"
-                  className="text-senegal-green p-0 hover:text-senegal-green/80"
-                  asChild
-                >
-                  <Link to={`/actualites/${actualite.id}`}>
-                    Lire la suite
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            data?.items.map((actualite) => (
+              <ActualiteCard key={actualite.id} {...actualite} />
+            ))
+          )}
         </div>
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-12">
             <Button

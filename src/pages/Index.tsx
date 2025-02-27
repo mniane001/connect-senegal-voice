@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Book, Users, Building, Shield, MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import ActualiteCard from "@/components/actualites/ActualiteCard";
 
 interface Actualite {
   id: string;
@@ -153,26 +154,27 @@ const Index = () => {
         </section>
 
         {/* Actualités Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="py-16 bg-gray-50">
+          <div className="container-custom">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-2 text-assembly-blue">
+                <h2 className="text-2xl md:text-3xl font-bold text-assembly-blue mb-2">
                   Actualités récentes
                 </h2>
                 <div className="h-1 w-20 bg-gradient-to-r from-assembly-blue to-senegal-yellow"></div>
               </div>
-              <Link to="/actualites" className="btn btn-outline-assembly">
+              <Link to="/actualites" className="text-assembly-blue hover:underline flex items-center">
                 Toutes les actualités
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="bg-white rounded-xl shadow-lg animate-pulse h-full">
-                    <div className="relative h-48 bg-gray-200"></div>
-                    <div className="p-4">
+                  <div key={index} className="card-official animate-pulse">
+                    <div className="h-48 bg-gray-200 rounded-t-xl"></div>
+                    <div className="p-6">
                       <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
                       <div className="h-6 bg-gray-200 rounded mb-4"></div>
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -181,36 +183,7 @@ const Index = () => {
                 ))
               ) : (
                 actualites?.map((actualite) => (
-                  <div key={actualite.id} className="bg-white rounded-xl shadow-lg h-full flex flex-col">
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={actualite.image_url || "/placeholder.svg"}
-                        alt={actualite.title}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                      <div className="absolute top-0 right-0 bg-assembly-blue text-white px-3 py-1 text-sm font-medium">
-                        {actualite.category}
-                      </div>
-                    </div>
-                    <div className="p-4 flex-grow flex flex-col">
-                      <div className="text-gray-500 text-sm mb-2">
-                        {formatDate(actualite.published_at)}
-                      </div>
-                      <h3 className="text-xl font-bold mb-2 text-assembly-blue line-clamp-2">
-                        {actualite.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4 flex-grow line-clamp-3">
-                        {actualite.excerpt || actualite.content}
-                      </p>
-                      <Link
-                        to={`/actualites/${actualite.id}`}
-                        className="text-assembly-blue font-medium hover:underline self-start mt-auto flex items-center"
-                      >
-                        Lire la suite
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
+                  <ActualiteCard key={actualite.id} {...actualite} />
                 ))
               )}
             </div>

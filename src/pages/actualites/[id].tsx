@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -79,6 +78,7 @@ const ActualitePage = () => {
     }
   };
 
+  // Mise à jour uniquement de la structure JSX pour le thème
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -95,26 +95,26 @@ const ActualitePage = () => {
             </div>
           </div>
         ) : actualite ? (
-          <article className="space-y-8">
+          <article className="card-official p-8">
             <Button
               variant="ghost"
               className="mb-8"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour
+              Retour aux actualités
             </Button>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium px-3 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
+                <span className="text-sm font-medium px-3 py-1 rounded-full bg-assembly-blue text-white">
                   {actualite.category}
                 </span>
                 <time className="text-sm text-gray-500">
                   {formatDate(actualite.published_at)}
                 </time>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold">
+              <h1 className="font-display text-4xl font-bold text-assembly-blue">
                 {actualite.title}
               </h1>
             </div>
@@ -123,12 +123,12 @@ const ActualitePage = () => {
               <img
                 src={actualite.image_url}
                 alt={actualite.title}
-                className="w-full aspect-video object-cover rounded-xl"
+                className="w-full rounded-xl mb-8"
               />
             )}
 
             {/* Boutons de partage */}
-            <div className="flex flex-wrap items-center gap-3 py-4 border-y">
+            <div className="flex flex-wrap items-center gap-3 py-4 border-y mb-8">
               <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <Share2 className="h-4 w-4" />
                 Partager :
@@ -217,61 +217,65 @@ const ActualitePage = () => {
                 <p key={index}>{paragraph}</p>
               ))}
             </div>
+
+            {/* Articles similaires */}
+            {relatedArticles && relatedArticles.length > 0 && (
+              <section className="mt-16 pt-16 border-t">
+                <h2 className="text-2xl font-bold text-assembly-blue mb-8">
+                  Articles similaires
+                </h2>
+                <div className="grid md:grid-cols-3 gap-8">
+                  {relatedArticles.map((article) => (
+                    <div 
+                      key={article.id}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+                    >
+                      <img
+                        src={article.image_url || "/placeholder.svg"}
+                        alt={article.title}
+                        className="w-full aspect-video object-cover"
+                      />
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
+                            {article.category}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {formatDate(article.published_at)}
+                          </span>
+                        </div>
+                        <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
+                          {article.title}
+                        </h3>
+                        <p className="text-gray-600 mb-4 line-clamp-3">
+                          {article.excerpt || article.content}
+                        </p>
+                        <Button
+                          variant="link"
+                          className="text-senegal-green p-0 hover:text-senegal-green/80"
+                          asChild
+                        >
+                          <a href={`/actualites/${article.id}`}>
+                            Lire la suite
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </article>
         ) : (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Article non trouvé</h2>
+          <div className="text-center card-official p-8">
+            <h2 className="text-2xl font-bold text-assembly-blue mb-4">
+              Article non trouvé
+            </h2>
             <Button onClick={() => navigate("/actualites")}>
               Retourner aux actualités
             </Button>
           </div>
-        )}
-
-        {/* Articles similaires */}
-        {relatedArticles && relatedArticles.length > 0 && (
-          <section className="mt-16 pt-16 border-t">
-            <h2 className="text-2xl font-bold mb-8">Articles similaires</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {relatedArticles.map((article) => (
-                <div 
-                  key={article.id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
-                >
-                  <img
-                    src={article.image_url || "/placeholder.svg"}
-                    alt={article.title}
-                    className="w-full aspect-video object-cover"
-                  />
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-senegal-green/10 text-senegal-green">
-                        {article.category}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatDate(article.published_at)}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-xl font-bold mb-2 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                      {article.excerpt || article.content}
-                    </p>
-                    <Button
-                      variant="link"
-                      className="text-senegal-green p-0 hover:text-senegal-green/80"
-                      asChild
-                    >
-                      <a href={`/actualites/${article.id}`}>
-                        Lire la suite
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
         )}
       </main>
     </div>
