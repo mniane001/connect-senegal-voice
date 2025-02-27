@@ -5,6 +5,7 @@ import './index.css'
 
 // Exposer l'application React globalement pour les méthodes de chargement non-module
 window.App = <App />;
+// @ts-ignore - Nous n'avons besoin que de createRoot, pas de toutes les méthodes de ReactDOM
 window.ReactDOM = { createRoot };
 
 // Utilisation de try/catch pour détecter les erreurs de chargement
