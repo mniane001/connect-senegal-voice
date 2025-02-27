@@ -40,9 +40,14 @@
         `;
         document.body.appendChild(script);
       } else {
-        // En production, charger le script compilé
+        // En production, utiliser directement l'interface de secours
+        // jusqu'à ce que la configuration du build soit corrigée
+        showFallbackUI();
+        
+        // Commenté temporairement car le chemin est incorrect
+        /*
         const script = document.createElement('script');
-        script.src = './dist/assets/index.js';
+        script.src = 'assets/index.js';
         script.onload = function() {
           console.log("Script compilé chargé avec succès");
         };
@@ -51,6 +56,7 @@
           showFallbackUI();
         };
         document.body.appendChild(script);
+        */
       }
       
       function showFallbackUI() {

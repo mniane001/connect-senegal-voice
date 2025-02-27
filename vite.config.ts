@@ -22,9 +22,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         format: 'es', // Utiliser le format ES modules
-        entryFileNames: 'assets/[name].[hash].js',
+        entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]'
+        assetFileNames: 'assets/[name].[ext]'
       }
     }
   }
