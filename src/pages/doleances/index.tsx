@@ -25,6 +25,22 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+const CATEGORIES = [
+  { value: "education", label: "Éducation" },
+  { value: "sante", label: "Santé" },
+  { value: "infrastructure", label: "Infrastructure" },
+  { value: "economie", label: "Économie" },
+  { value: "environnement", label: "Environnement" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "securite", label: "Sécurité" },
+  { value: "justice", label: "Justice" },
+  { value: "culture", label: "Culture" },
+  { value: "sport", label: "Sport" },
+  { value: "transport", label: "Transport" },
+  { value: "emploi", label: "Emploi" },
+  { value: "autre", label: "Autre" }
+];
+
 const QuestionEcritePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +51,7 @@ const QuestionEcritePage = () => {
     email: "",
     title: "",
     category: "",
+    customCategory: "",
     description: "",
   });
 
@@ -43,11 +60,17 @@ const QuestionEcritePage = () => {
     setLoading(true);
 
     try {
+      const finalCategory = formData.category === "autre" ? formData.title : formData.category;
+
       const { error } = await supabase
         .from("doleances")
         .insert([
           {
-            ...formData,
+            name: formData.name,
+            email: formData.email,
+            title: formData.title,
+            category: finalCategory,
+            description: formData.description,
             created_by: user?.id || "anonymous",
             status: "submitted",
           },
@@ -127,11 +150,11 @@ const QuestionEcritePage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="education">Éducation</SelectItem>
-                      <SelectItem value="sante">Santé</SelectItem>
-                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                      <SelectItem value="economie">Économie</SelectItem>
-                      <SelectItem value="autre">Autre</SelectItem>
+                      {CATEGORIES.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -147,6 +170,11 @@ const QuestionEcritePage = () => {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                 />
+                {formData.category === "autre" && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Note : Pour une catégorie "Autre", le titre de votre question sera utilisé comme catégorie.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -162,7 +190,7 @@ const QuestionEcritePage = () => {
                 />
               </div>
 
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Envoi en cours..." : "Soumettre la question"}
               </Button>
             </form>
