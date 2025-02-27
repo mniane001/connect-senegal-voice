@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -170,7 +169,6 @@ html {
 }
 
 /* Prevent horizontal scroll on mobile */
-.overflow-x-hidden {
-  @apply overflow-x-hidden;
+body {
+  overflow-x: hidden;
 }
-
