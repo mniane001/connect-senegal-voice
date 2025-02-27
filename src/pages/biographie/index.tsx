@@ -1,8 +1,8 @@
-
 import React from 'react';
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const BiographiePage = () => {
   return (
@@ -33,6 +33,7 @@ const BiographiePage = () => {
         </div>
       </div>
 
+      {/* Main Content */}
       <section className="section bg-white">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row gap-12">
@@ -169,6 +170,8 @@ const BiographiePage = () => {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
