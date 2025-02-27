@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -28,6 +27,22 @@ interface CreateQuestionModalProps {
   onQuestionCreated: () => void;
 }
 
+const CATEGORIES = [
+  { value: "education", label: "Éducation" },
+  { value: "sante", label: "Santé" },
+  { value: "infrastructure", label: "Infrastructure" },
+  { value: "economie", label: "Économie" },
+  { value: "environnement", label: "Environnement" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "securite", label: "Sécurité" },
+  { value: "justice", label: "Justice" },
+  { value: "culture", label: "Culture" },
+  { value: "sport", label: "Sport" },
+  { value: "transport", label: "Transport" },
+  { value: "emploi", label: "Emploi" },
+  { value: "autre", label: "Autre" }
+];
+
 const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuestionModalProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -36,6 +51,7 @@ const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuest
     email: "",
     title: "",
     category: "",
+    customCategory: "",
     description: "",
   });
 
@@ -44,17 +60,22 @@ const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuest
     setLoading(true);
 
     try {
-      // Récupérer l'utilisateur actuel
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("Utilisateur non authentifié");
       }
 
+      const finalCategory = formData.category === "autre" ? formData.customCategory : formData.category;
+
       const { error } = await supabase
         .from("doleances")
         .insert({
-          ...formData,
+          name: formData.name,
+          email: formData.email,
+          title: formData.title,
+          category: finalCategory,
+          description: formData.description,
           status: "submitted",
           created_by: user.id
         });
@@ -73,6 +94,7 @@ const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuest
         email: "",
         title: "",
         category: "",
+        customCategory: "",
         description: "",
       });
     } catch (error) {
@@ -142,14 +164,24 @@ const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuest
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="education">Éducation</SelectItem>
-                    <SelectItem value="sante">Santé</SelectItem>
-                    <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                    <SelectItem value="economie">Économie</SelectItem>
-                    <SelectItem value="autre">Autre</SelectItem>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              {formData.category === "autre" && (
+                <div className="mt-2">
+                  <Input
+                    placeholder="Précisez la catégorie"
+                    value={formData.customCategory}
+                    onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

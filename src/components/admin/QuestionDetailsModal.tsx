@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -35,11 +34,25 @@ interface QuestionDetailsModalProps {
   onStatusUpdate: (questionId: string, newStatus: string) => void;
 }
 
+const CATEGORIES = {
+  education: "Éducation",
+  sante: "Santé",
+  infrastructure: "Infrastructure",
+  economie: "Économie",
+  environnement: "Environnement",
+  agriculture: "Agriculture",
+  securite: "Sécurité",
+  justice: "Justice",
+  culture: "Culture",
+  sport: "Sport",
+  transport: "Transport",
+  emploi: "Emploi"
+};
+
 const QuestionDetailsModal = ({ question, onClose, onStatusUpdate }: QuestionDetailsModalProps) => {
   const [status, setStatus] = useState(question?.status || "submitted");
   const { toast } = useToast();
 
-  // Synchroniser le statut local avec celui de la question quand elle change
   useEffect(() => {
     if (question) {
       setStatus(question.status);
@@ -80,6 +93,10 @@ const QuestionDetailsModal = ({ question, onClose, onStatusUpdate }: QuestionDet
     }
   };
 
+  const getCategoryDisplay = (category: string) => {
+    return CATEGORIES[category as keyof typeof CATEGORIES] || category;
+  };
+
   return (
     <Dialog open={!!question} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -113,7 +130,7 @@ const QuestionDetailsModal = ({ question, onClose, onStatusUpdate }: QuestionDet
               </div>
               <div>
                 <p className="font-semibold">Catégorie</p>
-                <p>{question?.category}</p>
+                <p>{question?.category && getCategoryDisplay(question.category)}</p>
               </div>
               <div>
                 <p className="font-semibold">Date de soumission</p>
