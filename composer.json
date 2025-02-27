@@ -1,0 +1,8 @@
+
+{
+    "name": "connect-senegal-voice",
+    "description": "Application React pour Connect Senegal Voice",
+    "require": {
+        "php": "^8.0"
+    }
+}
