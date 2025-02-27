@@ -14,6 +14,10 @@ import AudiencePage from "./pages/audience";
 import ActualitesPage from "./pages/actualites";
 import ActualitePage from "./pages/actualites/[id]";
 import InitiativesPage from "./pages/initiatives";
+import QuestionsEcritesPage from "./pages/initiatives/questions-ecrites";
+import QuestionsOralesPage from "./pages/initiatives/questions-orales";
+import CommissionsEnquetePage from "./pages/initiatives/commissions-enquete";
+import PropositionsLoiPage from "./pages/initiatives/propositions-loi";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +41,10 @@ const App = () => (
             <Route path="/actualites" element={<ActualitesPage />} />
             <Route path="/actualites/:id" element={<ActualitePage />} />
             <Route path="/initiatives" element={<InitiativesPage />} />
+            <Route path="/initiatives/questions-ecrites" element={<QuestionsEcritesPage />} />
+            <Route path="/initiatives/questions-orales" element={<QuestionsOralesPage />} />
+            <Route path="/initiatives/commissions-enquete" element={<CommissionsEnquetePage />} />
+            <Route path="/initiatives/propositions-loi" element={<PropositionsLoiPage />} />
             <Route
               path="/doleances"
               element={

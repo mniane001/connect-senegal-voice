@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { FileText, MessageSquare, Users, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const InitiativesPage = () => {
   return (
@@ -48,7 +49,7 @@ const InitiativesPage = () => {
                 <p className="text-gray-600 mb-6">
                   Interrogations formelles adressées au gouvernement sur des sujets spécifiques
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {[1, 2, 3].map((_, i) => (
                     <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
                       <h3 className="font-bold text-assembly-blue">
@@ -66,6 +67,15 @@ const InitiativesPage = () => {
                     </div>
                   ))}
                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue hover:text-white"
+                  asChild
+                >
+                  <Link to="/initiatives/questions-ecrites">
+                    Voir toutes les questions écrites
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -83,7 +93,7 @@ const InitiativesPage = () => {
                 <p className="text-gray-600 mb-6">
                   Questions posées directement aux membres du gouvernement lors des séances
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {[1, 2, 3].map((_, i) => (
                     <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
                       <h3 className="font-bold text-assembly-blue">
@@ -101,6 +111,15 @@ const InitiativesPage = () => {
                     </div>
                   ))}
                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue hover:text-white"
+                  asChild
+                >
+                  <Link to="/initiatives/questions-orales">
+                    Voir toutes les questions orales
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -118,7 +137,7 @@ const InitiativesPage = () => {
                 <p className="text-gray-600 mb-6">
                   Initiatives pour la création de commissions d'investigation parlementaire
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {[1, 2].map((_, i) => (
                     <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
                       <h3 className="font-bold text-assembly-blue">
@@ -136,6 +155,15 @@ const InitiativesPage = () => {
                     </div>
                   ))}
                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue hover:text-white"
+                  asChild
+                >
+                  <Link to="/initiatives/commissions-enquete">
+                    Voir toutes les commissions d'enquête
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -153,7 +181,7 @@ const InitiativesPage = () => {
                 <p className="text-gray-600 mb-6">
                   Textes législatifs proposés pour améliorer le cadre juridique
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {[1, 2].map((_, i) => (
                     <div key={i} className="border-l-4 border-assembly-blue p-4 bg-gray-50">
                       <h3 className="font-bold text-assembly-blue">
@@ -171,6 +199,15 @@ const InitiativesPage = () => {
                     </div>
                   ))}
                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue hover:text-white"
+                  asChild
+                >
+                  <Link to="/initiatives/propositions-loi">
+                    Voir toutes les propositions de loi
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
