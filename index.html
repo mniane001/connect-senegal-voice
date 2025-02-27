@@ -8,11 +8,26 @@
     <meta name="description" content="Site officiel de Guy Marius Sagna, député engagé pour un Sénégal numérique et connecté" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap">
     <meta property="og:image" content="og-image.png" />
+    <script>
+      // Définir le type MIME correct pour les scripts JavaScript
+      document.addEventListener('DOMContentLoaded', function() {
+        // Création dynamique du script GPT Engineer
+        var gptScript = document.createElement('script');
+        gptScript.type = 'module';
+        gptScript.src = 'https://cdn.gpteng.co/gptengineer.js';
+        document.body.appendChild(gptScript);
+        
+        // Création dynamique du script main
+        var mainScript = document.createElement('script');
+        mainScript.type = 'module';
+        mainScript.src = './src/main.tsx';
+        document.body.appendChild(mainScript);
+      });
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="./src/main.tsx"></script>
+    <!-- Les scripts seront chargés dynamiquement -->
   </body>
 </html>
