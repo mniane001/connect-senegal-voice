@@ -8,35 +8,10 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.html [QSA,L]
 
-# Définir les types MIME corrects pour les fichiers JavaScript et TypeScript
+# Définir le type MIME correct pour les fichiers JavaScript
 <IfModule mod_mime.c>
   AddType application/javascript .js
-  AddType application/javascript .mjs
-  AddType application/javascript .tsx
-  AddType application/javascript .ts
-</IfModule>
-
-# Forcer les types MIME pour les fichiers spécifiques
-<FilesMatch "\.js$">
-  ForceType application/javascript
-</FilesMatch>
-
-<FilesMatch "\.mjs$">
-  ForceType application/javascript
-</FilesMatch>
-
-<FilesMatch "\.tsx$">
-  ForceType application/javascript
-</FilesMatch>
-
-<FilesMatch "\.ts$">
-  ForceType application/javascript
-</FilesMatch>
-
-# Désactiver PHP pour ce répertoire
-<IfModule mod_php7.c>
-  php_flag engine off
 </IfModule>
 
 # Définir le fichier d'index par défaut
-DirectoryIndex index.html
+DirectoryIndex index.html fallback.html

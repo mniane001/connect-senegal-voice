@@ -8,26 +8,34 @@
     <meta name="description" content="Site officiel de Guy Marius Sagna, député engagé pour un Sénégal numérique et connecté" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap">
     <meta property="og:image" content="og-image.png" />
-    <script>
-      // Définir le type MIME correct pour les scripts JavaScript
-      document.addEventListener('DOMContentLoaded', function() {
-        // Création dynamique du script GPT Engineer
-        var gptScript = document.createElement('script');
-        gptScript.type = 'module';
-        gptScript.src = 'https://cdn.gpteng.co/gptengineer.js';
-        document.body.appendChild(gptScript);
-        
-        // Création dynamique du script main
-        var mainScript = document.createElement('script');
-        mainScript.type = 'module';
-        mainScript.src = './src/main.tsx';
-        document.body.appendChild(mainScript);
-      });
-    </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <!-- Les scripts seront chargés dynamiquement -->
+
+    <!-- Chargement des scripts sans utiliser le type module -->
+    <script src="https://cdn.gpteng.co/gptengineer.js"></script>
+    
+    <!-- Chargement des polyfills et de React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Notre application pré-compilée -->
+    <script>
+      // Script d'initialisation
+      document.addEventListener('DOMContentLoaded', function() {
+        // Essayer de monter l'application si disponible
+        if (typeof window.App !== 'undefined' && window.ReactDOM) {
+          try {
+            ReactDOM.createRoot(document.getElementById('root')).render(window.App);
+            console.log("Application démarrée avec succès");
+          } catch (error) {
+            console.error("Erreur lors du démarrage de l'application:", error);
+          }
+        } else {
+          console.warn("Chargement classique : L'application React ou ReactDOM n'est pas disponible");
+        }
+      });
+    </script>
   </body>
 </html>
