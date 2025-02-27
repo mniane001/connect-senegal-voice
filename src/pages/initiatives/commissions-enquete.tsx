@@ -1,8 +1,40 @@
 
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Users } from "lucide-react";
 
 const CommissionsEnquetePage = () => {
+  const commissions = [
+    {
+      id: 1,
+      title: "Commission sur la gestion des ressources minières",
+      description: "Proposition de création d'une commission d'enquête sur la gestion des ressources...",
+      date: "5 Janvier 2024",
+      status: "En cours d'examen"
+    },
+    {
+      id: 2,
+      title: "Enquête sur la gestion des fonds COVID-19",
+      description: "Commission d'enquête sur l'utilisation des ressources pendant la pandémie...",
+      date: "15 Décembre 2023",
+      status: "En cours d'examen"
+    },
+    {
+      id: 3,
+      title: "Audit des marchés publics",
+      description: "Commission d'enquête sur la transparence des processus d'attribution...",
+      date: "1 Décembre 2023",
+      status: "En délibération"
+    },
+    {
+      id: 4,
+      title: "Gestion des terres agricoles",
+      description: "Enquête sur l'attribution et la gestion des terres agricoles...",
+      date: "15 Novembre 2023",
+      status: "Approuvée"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -27,28 +59,32 @@ const CommissionsEnquetePage = () => {
       {/* Main Content */}
       <div className="container-custom py-16">
         <div className="space-y-6">
-          {[1, 2, 3, 4].map((_, i) => (
-            <div key={i} className="card-official p-6">
+          {commissions.map((commission) => (
+            <Link
+              key={commission.id}
+              to={`/initiatives/commissions-enquete/${commission.id}`}
+              className="block card-official p-6 transition-transform hover:scale-[1.01]"
+            >
               <div className="flex items-start">
                 <div className="bg-assembly-blue/10 p-3 rounded-full mr-4">
                   <Users className="text-assembly-blue h-6 w-6" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-assembly-blue mb-2">
-                    Commission sur la gestion des ressources minières
+                    {commission.title}
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Proposition de création d'une commission d'enquête sur la gestion des ressources...
+                    {commission.description}
                   </p>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">5 Janvier 2024</span>
+                    <span className="text-sm text-gray-500">{commission.date}</span>
                     <span className="text-sm px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-                      En cours d'examen
+                      {commission.status}
                     </span>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

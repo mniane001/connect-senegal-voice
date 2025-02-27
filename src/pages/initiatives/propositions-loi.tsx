@@ -1,8 +1,42 @@
 
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { BookOpen } from "lucide-react";
 
 const PropositionsLoiPage = () => {
+  const propositions = [
+    {
+      id: 1,
+      title: "Loi sur la transparence des industries extractives",
+      description: "Proposition visant à renforcer la transparence dans la gestion des ressources...",
+      date: "20 Décembre 2023",
+    },
+    {
+      id: 2,
+      title: "Protection des lanceurs d'alerte",
+      description: "Projet de loi pour la protection juridique des dénonciateurs...",
+      date: "10 Décembre 2023",
+    },
+    {
+      id: 3,
+      title: "Réforme du code de l'environnement",
+      description: "Mise à jour des dispositions relatives à la protection environnementale...",
+      date: "1 Décembre 2023",
+    },
+    {
+      id: 4,
+      title: "Modernisation de la justice",
+      description: "Proposition pour améliorer l'efficacité et l'accessibilité de la justice...",
+      date: "20 Novembre 2023",
+    },
+    {
+      id: 5,
+      title: "Droits des travailleurs",
+      description: "Renforcement des protections sociales et des conditions de travail...",
+      date: "10 Novembre 2023",
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -27,28 +61,32 @@ const PropositionsLoiPage = () => {
       {/* Main Content */}
       <div className="container-custom py-16">
         <div className="space-y-6">
-          {[1, 2, 3, 4, 5].map((_, i) => (
-            <div key={i} className="card-official p-6">
+          {propositions.map((proposition) => (
+            <Link
+              key={proposition.id}
+              to={`/initiatives/propositions-loi/${proposition.id}`}
+              className="block card-official p-6 transition-transform hover:scale-[1.01]"
+            >
               <div className="flex items-start">
                 <div className="bg-assembly-blue/10 p-3 rounded-full mr-4">
                   <BookOpen className="text-assembly-blue h-6 w-6" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-assembly-blue mb-2">
-                    Loi sur la transparence des industries extractives
+                    {proposition.title}
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Proposition visant à renforcer la transparence dans la gestion des ressources...
+                    {proposition.description}
                   </p>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">20 Décembre 2023</span>
-                    <a href="#" className="text-assembly-blue hover:underline text-sm">
+                    <span className="text-sm text-gray-500">{proposition.date}</span>
+                    <span className="text-sm text-assembly-blue hover:underline">
                       Lire le projet →
-                    </a>
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
