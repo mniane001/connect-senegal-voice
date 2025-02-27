@@ -9,8 +9,19 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
+# Définition des types MIME
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType text/javascript .js
+  AddType text/javascript .mjs
+  AddType application/json .json
+  AddType text/css .css
+  AddType text/html .html .htm
+  AddType image/svg+xml .svg
+</IfModule>
+
 # php_flag engine off
-AddType text/html .html .htm
 DirectoryIndex index.html
 
 # Activer la compression
@@ -39,4 +50,11 @@ DirectoryIndex index.html
   ExpiresByType application/x-shockwave-flash "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresDefault "access plus 2 days"
+</IfModule>
+
+# Permettre l'exécution des fichiers JavaScript en tant que modules
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|mjs)$">
+    Header set Content-Type "application/javascript"
+  </FilesMatch>
 </IfModule>
