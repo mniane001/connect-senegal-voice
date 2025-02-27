@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,6 +39,12 @@ interface RencontreDetailsModalProps {
 const RencontreDetailsModal = ({ rencontre, onClose, onStatusUpdate }: RencontreDetailsModalProps) => {
   const [status, setStatus] = useState(rencontre?.status || "pending");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (rencontre) {
+      setStatus(rencontre.status);
+    }
+  }, [rencontre]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!rencontre) return;

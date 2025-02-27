@@ -34,7 +34,7 @@ interface RencontreListProps {
   onStatusUpdate: (rencontreId: string, newStatus: string) => void;
 }
 
-const RencontreList = ({ rencontres, onViewDetails }: RencontreListProps) => {
+const RencontreList = ({ rencontres, onViewDetails, onStatusUpdate }: RencontreListProps) => {
   // Fonction utilitaire pour traduire le statut
   const getStatusText = (status: string) => {
     switch (status) {
