@@ -44,14 +44,20 @@ const CreateQuestionModal = ({ isOpen, onClose, onQuestionCreated }: CreateQuest
     setLoading(true);
 
     try {
+      // Récupérer l'utilisateur actuel
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("Utilisateur non authentifié");
+      }
+
       const { error } = await supabase
         .from("doleances")
-        .insert([
-          {
-            ...formData,
-            status: "submitted",
-          },
-        ]);
+        .insert({
+          ...formData,
+          status: "submitted",
+          created_by: user.id
+        });
 
       if (error) throw error;
 
