@@ -22,6 +22,7 @@ import CommissionsEnquetePage from "./pages/initiatives/commissions-enquete";
 import CommissionEnqueteDetailPage from "./pages/initiatives/commissions-enquete/[id]";
 import PropositionsLoiPage from "./pages/initiatives/propositions-loi";
 import PropositionLoiDetailPage from "./pages/initiatives/propositions-loi/[id]";
+import BiographiePage from "./pages/biographie";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnqueteDetailPage />} />
             <Route path="/initiatives/propositions-loi" element={<PropositionsLoiPage />} />
             <Route path="/initiatives/propositions-loi/:id" element={<PropositionLoiDetailPage />} />
+            <Route path="/biographie" element={<BiographiePage />} />
             <Route
               path="/doleances"
               element={
