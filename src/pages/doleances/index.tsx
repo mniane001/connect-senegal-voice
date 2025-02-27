@@ -1,180 +1,178 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Flag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const DoleancesPage = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [category, setCategory] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+const QuestionEcritePage = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    title: "",
+    category: "",
+    description: "",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Veuillez vous connecter pour soumettre une doléance",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
+    setLoading(true);
 
     try {
-      const { error } = await supabase.from("doleances").insert({
-        name,
-        email,
-        category,
-        title,
-        description,
-        created_by: user.id,
-      });
+      const { error } = await supabase
+        .from("doleances")
+        .insert([
+          {
+            ...formData,
+            created_by: user?.id || "anonymous",
+            status: "submitted",
+          },
+        ]);
 
       if (error) throw error;
 
       toast({
-        title: "Doléance soumise avec succès",
-        description: "Nous vous contacterons bientôt avec une réponse",
+        title: "Question soumise avec succès",
+        description: "Nous examinerons votre question dans les plus brefs délais.",
       });
 
-      // Reset form
-      setName("");
-      setEmail("");
-      setCategory("");
-      setTitle("");
-      setDescription("");
-    } catch (error: any) {
+      navigate("/initiatives/questions-ecrites");
+    } catch (error) {
+      console.error("Erreur lors de la soumission:", error);
       toast({
-        title: "Erreur",
-        description: error.message,
         variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la soumission de votre question.",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="py-24">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <Flag className="mx-auto h-12 w-12 text-senegal-green" />
-            <h1 className="mt-4 text-3xl font-bold text-gray-900">
-              Soumettre une doléance
-            </h1>
-            <p className="mt-2 text-gray-600">
-              Partagez vos préoccupations et suggestions pour améliorer notre communauté
-            </p>
-          </div>
-
-          <div className="bg-white shadow rounded-lg p-6">
+      
+      <div className="container mx-auto px-4 py-16 mt-16">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle>Soumettre une question écrite</CardTitle>
+            <CardDescription>
+              Posez votre question à l'Assemblée nationale. Nous vous répondrons dans les meilleurs délais.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Nom complet
-                </label>
-                <Input
-                  id="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="mt-1"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Nom complet
+                  </label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
+              <div className="space-y-2">
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700">
                   Catégorie
                 </label>
-                <Select required value={category} onValueChange={setCategory}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez une catégorie" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                    <SelectItem value="education">Éducation</SelectItem>
-                    <SelectItem value="sante">Santé</SelectItem>
-                    <SelectItem value="securite">Sécurité</SelectItem>
-                    <SelectItem value="economie">Économie</SelectItem>
-                    <SelectItem value="autre">Autre</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="education">Éducation</SelectItem>
+                      <SelectItem value="sante">Santé</SelectItem>
+                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                      <SelectItem value="economie">Économie</SelectItem>
+                      <SelectItem value="autre">Autre</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                  Titre de la doléance
+                  Titre de la question
                 </label>
                 <Input
                   id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1"
                 />
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Description détaillée
                 </label>
                 <Textarea
                   id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={6}
                   required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 h-32"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Soumission en cours..." : "Soumettre la doléance"}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Envoi en cours..." : "Soumettre la question"}
               </Button>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
       <Footer />
     </div>
   );
 };
 
-export default DoleancesPage;
+export default QuestionEcritePage;

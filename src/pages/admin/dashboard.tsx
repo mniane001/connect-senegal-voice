@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -39,6 +39,7 @@ const DashboardPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: questions, isLoading: loadingQuestions } = useQuery({
     queryKey: ["questions", statusFilter, categoryFilter],
@@ -71,6 +72,18 @@ const DashboardPage = () => {
     },
   });
 
+  const handleStatusUpdate = async (questionId: string, newStatus: string) => {
+    // Mettre à jour le cache de React Query avec la nouvelle valeur
+    queryClient.setQueryData(["questions", statusFilter, categoryFilter], (oldData: Question[] | undefined) => {
+      if (!oldData) return oldData;
+      return oldData.map(question => 
+        question.id === questionId 
+          ? { ...question, status: newStatus }
+          : question
+      );
+    });
+  };
+
   const stats = {
     totalQuestions: questions?.length || 0,
     totalRencontres: rencontres?.length || 0,
@@ -97,6 +110,7 @@ const DashboardPage = () => {
         <QuestionList 
           questions={questions || []} 
           onViewDetails={setSelectedQuestion}
+          onStatusUpdate={handleStatusUpdate}
         />
 
         <RencontreList 
@@ -107,6 +121,7 @@ const DashboardPage = () => {
         <QuestionDetailsModal
           question={selectedQuestion}
           onClose={() => setSelectedQuestion(null)}
+          onStatusUpdate={handleStatusUpdate}
         />
 
         <RencontreDetailsModal

@@ -30,9 +30,38 @@ interface Question {
 interface QuestionListProps {
   questions: Question[];
   onViewDetails: (question: Question) => void;
+  onStatusUpdate: (questionId: string, newStatus: string) => void;
 }
 
-const QuestionList = ({ questions, onViewDetails }: QuestionListProps) => {
+const QuestionList = ({ questions, onViewDetails, onStatusUpdate }: QuestionListProps) => {
+  // Fonction utilitaire pour traduire le statut
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return "Soumis";
+      case "in_progress":
+        return "En cours";
+      case "completed":
+        return "Complété";
+      default:
+        return status;
+    }
+  };
+
+  // Fonction utilitaire pour obtenir les classes CSS du badge de statut
+  const getStatusClasses = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return "bg-yellow-100 text-yellow-800";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
     <Card className="mb-8">
       <CardHeader>
@@ -61,19 +90,8 @@ const QuestionList = ({ questions, onViewDetails }: QuestionListProps) => {
                 <TableCell>{question.name}</TableCell>
                 <TableCell>{question.category || "Non catégorisé"}</TableCell>
                 <TableCell>
-                  <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${
-                      question.status === "submitted"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : question.status === "in_progress"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-green-100 text-green-800"
-                    }`}>
-                    {question.status === "submitted"
-                      ? "Soumis"
-                      : question.status === "in_progress"
-                      ? "En cours"
-                      : "Complété"}
+                  <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClasses(question.status)}`}>
+                    {getStatusText(question.status)}
                   </div>
                 </TableCell>
                 <TableCell>
