@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X, UserCircle } from "lucide-react";
@@ -13,10 +14,22 @@ const Navbar = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        const { data } = await supabase
-          .rpc('is_admin', { user_id: user.id });
-        
-        setIsAdmin(!!data);
+        try {
+          const { data, error } = await supabase
+            .rpc('is_admin', { user_id: user.id });
+          
+          if (error) {
+            console.error('Erreur de vérification admin:', error);
+            return;
+          }
+          
+          console.log('Résultat is_admin:', data); // Pour le débogage
+          setIsAdmin(!!data);
+        } catch (error) {
+          console.error('Erreur lors de la vérification admin:', error);
+        }
+      } else {
+        setIsAdmin(false);
       }
     };
 
@@ -77,7 +90,10 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   className="text-gray-600"
-                  onClick={() => supabase.auth.signOut()}
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setIsAdmin(false);
+                  }}
                 >
                   <UserCircle className="mr-2 h-5 w-5" />
                   Se déconnecter
@@ -143,7 +159,10 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     className="w-full text-gray-600"
-                    onClick={() => supabase.auth.signOut()}
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      setIsAdmin(false);
+                    }}
                   >
                     <UserCircle className="mr-2 h-5 w-5" />
                     Se déconnecter
