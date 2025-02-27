@@ -15,10 +15,19 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  base: "./", // Utiliser des chemins relatifs
   build: {
     outDir: "dist",
     sourcemap: true,
-    // Assurez-vous que les chemins d'accès sont relatifs
     assetsDir: "assets",
+    // Assurer que les chemins sont relatifs
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name].[ext]'
+      }
+    }
   }
 });
