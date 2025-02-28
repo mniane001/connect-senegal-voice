@@ -59,10 +59,12 @@ const RencontreDetailsModal = ({
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [response, setResponse] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<string>("");
 
   useEffect(() => {
     if (rencontre) {
       setStatus(rencontre.status || "pending");
+      setOriginalStatus(rencontre.status || "pending");
       setResponse(rencontre.response || "");
       if (rencontre.meeting_date) {
         setDate(new Date(rencontre.meeting_date));
@@ -92,6 +94,31 @@ const RencontreDetailsModal = ({
     setResponse(e.target.value);
   };
 
+  const sendNotificationEmail = async (rencontreId: string, newStatus: string) => {
+    try {
+      console.log("Envoi de la notification par email pour l'audience:", rencontreId);
+      
+      const { data, error } = await supabase.functions.invoke("send-notification", {
+        body: {
+          type: "audience",
+          id: rencontreId,
+          newStatus: newStatus
+        }
+      });
+      
+      if (error) {
+        console.error("Erreur lors de l'envoi de la notification:", error);
+        throw error;
+      }
+      
+      console.log("Notification envoyée avec succès:", data);
+      return data;
+    } catch (error) {
+      console.error("Erreur d'invocation de la fonction send-notification:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setIsUpdating(true);
@@ -118,6 +145,24 @@ const RencontreDetailsModal = ({
       }
       
       console.log("Demande d'audience mise à jour avec succès");
+      
+      // Si le statut a changé, envoyer une notification par email
+      if (status !== originalStatus) {
+        try {
+          await sendNotificationEmail(rencontre.id, status);
+          toast({
+            title: "Email de notification envoyé",
+            description: `Un email a été envoyé à ${rencontre.email} pour l'informer du changement de statut.`,
+          });
+        } catch (emailError) {
+          console.error("Erreur lors de l'envoi de l'email:", emailError);
+          toast({
+            title: "Mise à jour réussie, mais échec de l'envoi d'email",
+            description: "La demande a été mise à jour, mais l'email de notification n'a pas pu être envoyé.",
+            variant: "destructive",
+          });
+        }
+      }
       
       toast({
         title: "Demande mise à jour",

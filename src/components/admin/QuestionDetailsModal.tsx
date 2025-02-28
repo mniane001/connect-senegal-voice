@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -48,14 +48,15 @@ const QuestionDetailsModal = ({
   const [status, setStatus] = useState<string>("");
   const [response, setResponse] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<string>("");
 
-  // Update status and response when question changes
-  useState(() => {
+  useEffect(() => {
     if (question) {
       setStatus(question.status);
+      setOriginalStatus(question.status);
       setResponse(question.response || "");
     }
-  });
+  }, [question]);
 
   if (!question) return null;
 
@@ -77,6 +78,31 @@ const QuestionDetailsModal = ({
     setResponse(e.target.value);
   };
 
+  const sendNotificationEmail = async (questionId: string, newStatus: string) => {
+    try {
+      console.log("Envoi de la notification par email pour la question:", questionId);
+      
+      const { data, error } = await supabase.functions.invoke("send-notification", {
+        body: {
+          type: "doleance",
+          id: questionId,
+          newStatus: newStatus
+        }
+      });
+      
+      if (error) {
+        console.error("Erreur lors de l'envoi de la notification:", error);
+        throw error;
+      }
+      
+      console.log("Notification envoyée avec succès:", data);
+      return data;
+    } catch (error) {
+      console.error("Erreur d'invocation de la fonction send-notification:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setIsUpdating(true);
@@ -90,6 +116,24 @@ const QuestionDetailsModal = ({
         .eq("id", question.id);
 
       if (error) throw error;
+      
+      // Si le statut a changé, envoyer une notification par email
+      if (status !== originalStatus) {
+        try {
+          await sendNotificationEmail(question.id, status);
+          toast({
+            title: "Email de notification envoyé",
+            description: `Un email a été envoyé à ${question.email} pour l'informer du changement de statut.`,
+          });
+        } catch (emailError) {
+          console.error("Erreur lors de l'envoi de l'email:", emailError);
+          toast({
+            title: "Mise à jour réussie, mais échec de l'envoi d'email",
+            description: "La question a été mise à jour, mais l'email de notification n'a pas pu être envoyé.",
+            variant: "destructive",
+          });
+        }
+      }
       
       toast({
         title: "Réponse enregistrée",
