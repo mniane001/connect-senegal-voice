@@ -91,7 +91,7 @@ const QuestionDetailsModal = ({
       });
       
       if (error) {
-        console.error("Erreur lors de l'envoi de la notification:", error);
+        console.error("Erreur lors de l'appel de la fonction send-notification:", error);
         return { success: false, error };
       }
       
@@ -124,25 +124,29 @@ const QuestionDetailsModal = ({
 
       if (error) throw error;
       
-      // Si le statut a changé, envoyer une notification par email
+      // Si le statut a changé, essayer d'envoyer une notification par email
+      // L'envoi d'email peut échouer, mais la mise à jour de la question est déjà réussie
       let emailResult = { success: true };
       if (status !== originalStatus) {
         emailResult = await sendNotificationEmail(question.id, status);
       }
       
-      // Mise à jour réussie, afficher un toast approprié
+      // Afficher un toast approprié en fonction du résultat
       if (status !== originalStatus && !emailResult.success) {
-        // La question a été mise à jour, mais l'email a échoué
+        // L'email a échoué, mais nous informons quand même l'utilisateur que la question a été mise à jour
         toast({
           title: "Question mise à jour",
-          description: "La question a été mise à jour, mais l'envoi de l'email de notification a échoué.",
+          description: "La question a été mise à jour, mais l'envoi de l'email de notification n'a pas fonctionné. Le citoyen ne sera pas notifié.",
           variant: "default",
         });
       } else {
-        // Tout s'est bien passé
+        // Soit tout s'est bien passé, soit il n'y avait pas d'email à envoyer
+        const emailSent = status !== originalStatus && emailResult.success;
         toast({
           title: "Réponse enregistrée",
-          description: "La réponse a été enregistrée avec succès et une notification a été envoyée au citoyen.",
+          description: emailSent 
+            ? "La réponse a été enregistrée avec succès et une notification a été envoyée au citoyen." 
+            : "La réponse a été enregistrée avec succès.",
         });
       }
       

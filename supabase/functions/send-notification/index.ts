@@ -120,24 +120,40 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Envoi d'email à:", audience.email);
       console.log("Contenu de l'email:", html);
 
-      // Envoyer l'email - En mode production, envoi à l'adresse réelle
-      const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <onboarding@resend.dev>",
-        to: [audience.email],
-        subject: subject,
-        html: html,
-        reply_to: "mniane6426@gmail.com"
-      });
+      // Envoyer l'email
+      try {
+        const emailResponse = await resend.emails.send({
+          from: "onboarding@resend.dev", // Format simplifié pour éviter les problèmes
+          to: audience.email, // Destinataire réel 
+          subject: subject,
+          html: html,
+          reply_to: "mniane6426@gmail.com"
+        });
 
-      console.log("Email envoyé:", emailResponse);
-
-      return new Response(JSON.stringify(emailResponse), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      });
+        console.log("Email envoyé avec succès:", emailResponse);
+        
+        return new Response(JSON.stringify(emailResponse), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        });
+      } catch (emailError: any) {
+        console.error("Erreur lors de l'envoi de l'email pour audience:", emailError);
+        
+        // Retourner une réponse avec l'erreur mais avec un statut 200
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: emailError.message || "Erreur lors de l'envoi de l'email"
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     } else if (type === "doleance") {
       // Récupérer les détails de la question citoyenne
       const { data: doleance, error } = await supabase
@@ -192,16 +208,16 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Contenu de l'email:", html);
 
       try {
-        // Envoyer l'email - En mode production, envoi à l'adresse réelle
+        // Modification clé: simplification de l'adresse d'envoi et utilisation directe de l'adresse email du destinataire
         const emailResponse = await resend.emails.send({
-          from: "Bureau du Député <onboarding@resend.dev>",
-          to: [doleance.email],
+          from: "onboarding@resend.dev", // Format simplifié pour éviter les problèmes
+          to: doleance.email, // Destinataire réel
           subject: subject,
           html: html,
           reply_to: "mniane6426@gmail.com"
         });
 
-        console.log("Email envoyé:", emailResponse);
+        console.log("Email envoyé avec succès:", emailResponse);
         
         return new Response(JSON.stringify(emailResponse), {
           status: 200,
@@ -211,7 +227,7 @@ const handler = async (req: Request): Promise<Response> => {
           },
         });
       } catch (emailError: any) {
-        console.error("Erreur lors de l'envoi de l'email:", emailError);
+        console.error("Erreur lors de l'envoi de l'email pour doleance:", emailError);
         
         // Retourner l'erreur mais avec un statut 200 pour que le frontend puisse traiter l'erreur
         return new Response(
