@@ -35,27 +35,32 @@ serve(async (req) => {
     
     // Récupérer les détails de la doléance ou audience
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-    
-    console.log(`Récupération des données pour ${type} avec ID: ${id}`);
-    
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const tableName = type === "doleance" ? "doleances" : "audiences";
-    const response_data = await fetch(
+    
+    console.log(`Tentative de récupération depuis la table ${tableName} pour l'ID: ${id}`);
+    
+    const res = await fetch(
       `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=*`,
       {
         headers: {
           "Content-Type": "application/json",
           "apikey": supabaseKey,
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+          "Authorization": `Bearer ${supabaseKey}`
         }
       }
     );
-
-    const itemData = await response_data.json();
+    
+    if (!res.ok) {
+      console.error(`Erreur HTTP lors de la récupération depuis ${tableName}:`, res.status, res.statusText);
+      throw new Error(`Erreur HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const itemData = await res.json();
     
     if (!itemData || itemData.length === 0) {
-      console.error(`Erreur lors de la récupération de ${type}: Données non trouvées`);
-      throw new Error(`Erreur lors de la récupération de ${type}: Données non trouvées`);
+      console.error(`Aucune donnée trouvée dans ${tableName} pour l'ID: ${id}`);
+      throw new Error(`Erreur lors de la récupération de ${type}: Données non trouvées pour l'ID ${id}`);
     }
     
     const item = itemData[0];
@@ -64,10 +69,7 @@ serve(async (req) => {
     // Préparer le contenu de l'email en fonction du type et du statut
     let emailSubject = "";
     let emailHtml = "";
-    
-    // Pour le test, nous envoyons toujours à l'adresse vérifiée
-    // En production, il faudra vérifier un domaine dans Resend
-    const recipientEmail = "nianemouhamed100@gmail.com"; // Utilisation de l'adresse vérifiée
+    let recipientEmail = item.email;
     
     const getStatusLabel = (status: string) => {
       switch (status) {
@@ -81,50 +83,131 @@ serve(async (req) => {
       }
     };
     
+    const deputyName = "Guy Marius SAGNA";
+    const deputyTitle = "Député à l'Assemblée Nationale du Sénégal";
+    
     if (type === "doleance") {
-      emailSubject = `Mise à jour de votre question - ${item.title}`;
+      emailSubject = `[IMPORTANT] Mise à jour de votre doléance - ${item.title}`;
       emailHtml = `
-        <h1>Mise à jour de votre question</h1>
-        <p>Bonjour ${item.name},</p>
-        <p>Votre question "${item.title}" a été mise à jour avec le statut: <strong>${getStatusLabel(newStatus)}</strong>.</p>
-        ${response ? `<p><strong>Réponse:</strong></p><p>${response}</p>` : ""}
-        <p>Si vous avez des questions supplémentaires, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
-        <p>Cordialement,<br>L'administration de Guédiawaye</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 5px; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #1a5276; margin: 0;">Mise à jour de votre doléance</h1>
+            <p style="color: #777; font-style: italic;">Bureau du Député ${deputyName}</p>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <p>Cher(e) ${item.name},</p>
+            <p>Nous vous informons que votre doléance concernant "<strong>${item.title}</strong>" a été mise à jour.</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #1a5276; margin: 15px 0;">
+              <p style="margin: 0;"><strong>Nouveau statut:</strong> ${getStatusLabel(newStatus)}</p>
+            </div>
+          </div>
+          
+          ${response ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1a5276; font-size: 18px; border-bottom: 1px solid #e1e1e1; padding-bottom: 8px;">Réponse du bureau du député:</h2>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+              <p>${response.replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-top: 30px; border-top: 1px solid #e1e1e1; padding-top: 20px;">
+            <p>Si vous avez des questions supplémentaires, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
+            <p>Cordialement,</p>
+            <p>
+              <strong>${deputyName}</strong><br>
+              ${deputyTitle}<br>
+              <em>Bureau de la Circonscription de Guédiawaye</em>
+            </p>
+          </div>
+        </div>
       `;
     } else if (type === "audience") {
-      emailSubject = `Mise à jour de votre demande d'audience - ${item.subject}`;
+      emailSubject = `[IMPORTANT] Mise à jour de votre demande d'audience avec ${deputyName}`;
       
       let meetingInfo = "";
       if (newStatus === "approved" && item.meeting_date) {
         const meetingDate = new Date(item.meeting_date);
+        const options = { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit'
+        };
+        const formattedDate = meetingDate.toLocaleDateString('fr-FR', options as Intl.DateTimeFormatOptions);
+        
         meetingInfo = `
-          <p>Nous avons le plaisir de vous informer que votre audience a été programmée pour le:</p>
-          <p><strong>${meetingDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong></p>
+          <div style="background-color: #e8f4fc; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h2 style="color: #1a5276; font-size: 18px; margin-top: 0;">Confirmation de la date d'audience</h2>
+            <p>Nous avons le plaisir de vous informer que votre audience a été programmée pour:</p>
+            <p style="font-size: 18px; text-align: center; font-weight: bold; color: #1a5276; margin: 15px 0;">
+              ${formattedDate}
+            </p>
+            <p style="font-style: italic; color: #666;">Lieu: Bureau de la circonscription de Guédiawaye</p>
+            <p>Merci de vous présenter 15 minutes avant l'heure prévue avec une pièce d'identité.</p>
+          </div>
         `;
       }
       
       emailHtml = `
-        <h1>Mise à jour de votre demande d'audience</h1>
-        <p>Bonjour ${item.name},</p>
-        <p>Votre demande d'audience concernant "${item.subject}" a été mise à jour avec le statut: <strong>${getStatusLabel(newStatus)}</strong>.</p>
-        ${meetingInfo}
-        ${response ? `<p><strong>Message:</strong></p><p>${response}</p>` : ""}
-        <p>Si vous avez des questions, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
-        <p>Cordialement,<br>L'administration de Guédiawaye</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 5px; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #1a5276; margin: 0;">Mise à jour de votre demande d'audience</h1>
+            <p style="color: #777; font-style: italic;">Bureau du Député ${deputyName}</p>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <p>Cher(e) ${item.name},</p>
+            <p>Nous vous informons que votre demande d'audience concernant "<strong>${item.subject}</strong>" a été mise à jour.</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #1a5276; margin: 15px 0;">
+              <p style="margin: 0;"><strong>Nouveau statut:</strong> ${getStatusLabel(newStatus)}</p>
+            </div>
+          </div>
+          
+          ${meetingInfo}
+          
+          ${response ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1a5276; font-size: 18px; border-bottom: 1px solid #e1e1e1; padding-bottom: 8px;">Message du bureau du député:</h2>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+              <p>${response.replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-top: 30px; border-top: 1px solid #e1e1e1; padding-top: 20px;">
+            <p>Si vous avez des questions, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
+            <p>Cordialement,</p>
+            <p>
+              <strong>${deputyName}</strong><br>
+              ${deputyTitle}<br>
+              <em>Bureau de la Circonscription de Guédiawaye</em>
+            </p>
+          </div>
+        </div>
       `;
     }
     
     // Configurer l'adresse de réponse (Reply-To)
-    const userReplyTo = replyToEmail || "nianemouhamed100@gmail.com"; // Utiliser l'adresse vérifiée
+    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser mniane6426@gmail.com par défaut
     
-    // Envoyer l'email avec les options Resend conformes à la restriction de test
+    // Envoyer l'email à l'utilisateur
     const emailOptions = {
-      from: "onboarding@resend.dev", // Utilisation de l'adresse par défaut de Resend pour les tests
-      to: [recipientEmail], // Toujours envoyer à l'adresse vérifiée en test
+      from: "Bureau de Guy Marius SAGNA <contact@gmsagna.com>",
+      to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,
-      reply_to: userReplyTo,
+      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à mniane6426@gmail.com
     };
+    
+    // Si une adresse admin est fournie, envoyer une copie à l'admin
+    if (adminEmail) {
+      // Toujours envoyer une copie à mniane6426@gmail.com
+      emailOptions.cc = [adminEmail];
+    }
     
     console.log("Envoi de l'email avec options:", emailOptions);
     
