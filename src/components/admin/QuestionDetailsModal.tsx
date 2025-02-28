@@ -86,7 +86,8 @@ const QuestionDetailsModal = ({
         body: {
           type: "doleance",
           id: questionId,
-          newStatus: newStatus
+          newStatus: newStatus,
+          adminEmail: "mniane6426@gmail.com" // Envoyer également la réponse à cet email
         }
       });
       

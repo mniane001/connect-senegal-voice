@@ -13,6 +13,7 @@ interface NotificationRequest {
   type: "doleance" | "audience"; // Type de notification
   id: string; // ID de la doleance ou audience
   newStatus: string; // Nouveau statut
+  adminEmail?: string; // Email de l'administrateur à mettre en copie
 }
 
 // Check if RESEND_API_KEY is available
@@ -37,8 +38,16 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     // Récupération des données de la requête
-    const { type, id, newStatus }: NotificationRequest = await req.json();
+    const { type, id, newStatus, adminEmail }: NotificationRequest = await req.json();
     console.log(`Traitement de notification pour ${type} avec ID: ${id}, nouveau statut: ${newStatus}`);
+    
+    // Liste des destinataires en CC
+    const ccRecipients = ["mniane6426@gmail.com"];
+    
+    // Ajouter l'email administrateur en CC s'il est fourni et différent de celui déjà présent
+    if (adminEmail && !ccRecipients.includes(adminEmail)) {
+      ccRecipients.push(adminEmail);
+    }
 
     // Si la clé Resend n'est pas configurée, retourner une erreur appropriée
     if (!resend) {
@@ -184,12 +193,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Envoi réel d'email avec Resend
     try {
       console.log("Envoi d'email en PRODUCTION à:", email);
-      console.log("Avec CC à: mniane6426@gmail.com");
+      console.log("Avec CC à:", ccRecipients.join(", "));
       
       const emailResponse = await resend.emails.send({
         from: "Cabinet Parlementaire <contact@gmsagna.com>",
         to: [email],
-        cc: ["mniane6426@gmail.com"], // Ajout de l'email en CC
+        cc: ccRecipients, // Utilisation de la liste des destinataires en CC
         subject: subject,
         html: htmlContent
       });
