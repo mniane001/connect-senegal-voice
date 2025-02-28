@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Envoi réel d'email avec Resend
     try {
-      console.log("Envoi d'email à:", email);
+      console.log("Envoi d'email en PRODUCTION à:", email);
       
       const emailResponse = await resend.emails.send({
         from: "Cabinet Parlementaire <onboarding@resend.dev>",
