@@ -56,7 +56,10 @@ serve(async (req) => {
     // Préparer le contenu de l'email en fonction du type et du statut
     let emailSubject = "";
     let emailHtml = "";
-    let recipientEmail = item.email;
+    
+    // Pour le test, nous envoyons toujours à l'adresse vérifiée
+    // En production, il faudra vérifier un domaine dans Resend
+    const recipientEmail = "nianemouhamed100@gmail.com"; // Utilisation de l'adresse vérifiée
     
     const getStatusLabel = (status: string) => {
       switch (status) {
@@ -104,21 +107,16 @@ serve(async (req) => {
     }
     
     // Configurer l'adresse de réponse (Reply-To)
-    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser l'adresse mniane6426@gmail.com par défaut
+    const userReplyTo = replyToEmail || "nianemouhamed100@gmail.com"; // Utiliser l'adresse vérifiée
     
-    // Envoyer l'email à l'utilisateur
+    // Envoyer l'email avec les options Resend conformes à la restriction de test
     const emailOptions = {
-      from: "Guédiawaye Municipal <contact@gmsagna.com>",
-      to: [recipientEmail],
+      from: "onboarding@resend.dev", // Utilisation de l'adresse par défaut de Resend pour les tests
+      to: [recipientEmail], // Toujours envoyer à l'adresse vérifiée en test
       subject: emailSubject,
       html: emailHtml,
-      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à l'adresse spécifiée
+      reply_to: userReplyTo,
     };
-    
-    // Si une adresse admin est fournie et qu'il y a une réponse, envoyer une copie à l'admin
-    if (adminEmail && response) {
-      emailOptions.cc = [adminEmail];
-    }
     
     console.log("Envoi de l'email avec options:", emailOptions);
     
