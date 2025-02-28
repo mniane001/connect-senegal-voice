@@ -79,19 +79,17 @@ const Navbar = () => {
               <Link to="/audience">Demander une rencontre</Link>
             </Button>
 
-            {user ? (
+            {user && isAdmin && (
               <>
-                {isAdmin && (
-                  <Button
-                    variant="outline"
-                    className="border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
-                    asChild
-                  >
-                    <Link to="/admin/dashboard">
-                      Dashboard
-                    </Link>
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  className="border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                  asChild
+                >
+                  <Link to="/admin/dashboard">
+                    Dashboard
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   className="text-gray-600"
@@ -104,10 +102,6 @@ const Navbar = () => {
                   Se déconnecter
                 </Button>
               </>
-            ) : (
-              <Link to="/auth" className="text-assembly-blue hover:underline text-sm">
-                Administration
-              </Link>
             )}
           </div>
 
@@ -141,19 +135,17 @@ const Navbar = () => {
                 <Link to="/audience">Demander une rencontre</Link>
               </Button>
 
-              {user ? (
+              {user && isAdmin && (
                 <>
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
-                      asChild
-                    >
-                      <Link to="/admin/dashboard">
-                        Dashboard
-                      </Link>
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
+                    asChild
+                  >
+                    <Link to="/admin/dashboard">
+                      Dashboard
+                    </Link>
+                  </Button>
                   <Button
                     variant="ghost"
                     className="w-full text-gray-600"
@@ -166,10 +158,6 @@ const Navbar = () => {
                     Se déconnecter
                   </Button>
                 </>
-              ) : (
-                <Link to="/auth" className="block px-3 py-2 text-assembly-blue hover:underline text-sm">
-                  Administration
-                </Link>
               )}
             </div>
           </div>
