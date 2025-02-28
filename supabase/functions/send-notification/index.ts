@@ -15,7 +15,16 @@ interface NotificationRequest {
   newStatus: string; // Nouveau statut
 }
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+// Check if RESEND_API_KEY is available
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+let resend: Resend | null = null;
+
+if (resendApiKey) {
+  resend = new Resend(resendApiKey);
+} else {
+  console.error("RESEND_API_KEY is not set in environment variables");
+}
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -30,6 +39,22 @@ const handler = async (req: Request): Promise<Response> => {
     // Récupération des données de la requête
     const { type, id, newStatus }: NotificationRequest = await req.json();
     console.log(`Traitement de notification pour ${type} avec ID: ${id}, nouveau statut: ${newStatus}`);
+
+    // Si la clé Resend n'est pas configurée, retourner une erreur appropriée
+    if (!resend) {
+      console.error("Impossible d'envoyer des emails: RESEND_API_KEY n'est pas configurée");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          emailError: true,
+          error: { message: "RESEND_API_KEY n'est pas configurée" }
+        }),
+        {
+          status: 200, // On retourne 200 pour permettre à l'UI de gérer l'erreur
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
 
     // Variables qui seront définies selon le type
     let email = "";
@@ -161,6 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       // Pour éviter les problèmes avec Resend en mode test
       // On utilise toujours l'adresse par défaut de Resend
+      console.log("Tentative d'envoi d'email à:", email);
       const emailResponse = await resend.emails.send({
         from: "onboarding@resend.dev",
         to: [email],
