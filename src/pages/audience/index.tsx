@@ -23,23 +23,28 @@ const AudiencePage = () => {
     setIsLoading(true);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       console.log("Soumission d'une demande d'audience avec les données:", {
         name,
         email,
         phone,
         subject,
         message,
-        status: "pending"
+        created_by: user?.id || null,
+        status: "pending", // Utilisation explicite du statut autorisé
       });
 
-      // Using TypeScript type assertion to fix the type error
-      const { error, data } = await (supabase.rpc as any)('submit_audience_request', {
-        p_name: name,
-        p_email: email,
-        p_phone: phone,
-        p_subject: subject,
-        p_message: message
-      });
+      const { error, data } = await supabase.from("audiences").insert({
+        name,
+        email,
+        phone,
+        subject,
+        message,
+        created_by: user?.id || null,
+        status: "pending", // Statut validé par la contrainte
+        response: null // Champ explicite pour la réponse, initialement vide
+      }).select();
 
       if (error) {
         console.error("Erreur Supabase:", error);

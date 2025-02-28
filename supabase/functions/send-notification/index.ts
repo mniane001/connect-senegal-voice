@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,291 +8,158 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const resendApiKey = Deno.env.get("RESEND_API_KEY") ?? "";
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-const resend = new Resend(resendApiKey);
-
-interface NotificationRequest {
+interface EmailPayload {
   type: "doleance" | "audience";
   id: string;
   newStatus: string;
+  adminEmail?: string;
+  replyToEmail?: string;
   response?: string;
-}
-
-async function getDoleanceDetails(id: string) {
-  console.log("Récupération des détails de la doléance:", id);
-  const { data, error } = await supabase
-    .from("doleances")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("Erreur lors de la récupération de la doléance:", error);
-    throw new Error(`Erreur lors de la récupération de la doléance: ${error.message}`);
-  }
-
-  console.log("Détails de la doléance récupérés:", data);
-  return data;
-}
-
-async function getAudienceDetails(id: string) {
-  console.log("Récupération des détails de l'audience:", id);
-  const { data, error } = await supabase
-    .from("audiences")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("Erreur lors de la récupération de l'audience:", error);
-    throw new Error(`Erreur lors de la récupération de l'audience: ${error.message}`);
-  }
-
-  console.log("Détails de l'audience récupérés:", data);
-  return data;
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case "submitted":
-      return "Soumise";
-    case "in_progress":
-      return "En cours de traitement";
-    case "completed":
-      return "Traitée";
-    case "rejected":
-      return "Rejetée";
-    case "pending":
-      return "En attente";
-    case "scheduled":
-      return "Programmée";
-    case "cancelled":
-      return "Annulée";
-    default:
-      return status;
-  }
-}
-
-function getDoleanceEmailSubject(status: string): string {
-  switch (status) {
-    case "in_progress":
-      return "Votre doléance est en cours de traitement";
-    case "completed":
-      return "Votre doléance a été traitée";
-    case "rejected":
-      return "Mise à jour concernant votre doléance";
-    default:
-      return "Mise à jour de votre doléance";
-  }
-}
-
-function getAudienceEmailSubject(status: string): string {
-  switch (status) {
-    case "scheduled":
-      return "Votre demande d'audience a été acceptée";
-    case "cancelled":
-      return "Votre demande d'audience a été annulée";
-    case "in_progress":
-      return "Votre demande d'audience est en cours de traitement";
-    default:
-      return "Mise à jour de votre demande d'audience";
-  }
-}
-
-function getFormattedDate(dateString: string | null): string {
-  if (!dateString) return "À déterminer";
-  
-  const date = new Date(dateString);
-  return date.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-async function sendDoleanceEmail(doleance: any, newStatus: string, response?: string) {
-  console.log("Préparation de l'email pour la doléance:", doleance.id);
-  
-  const subject = getDoleanceEmailSubject(newStatus);
-  
-  let htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #006400; margin-bottom: 10px;">Bureau du Député Guy Marius Sagna</h1>
-        <h2 style="color: #006400; margin-top: 0;">Ziguinchor, Sénégal</h2>
-      </div>
-      
-      <p>Cher/Chère ${doleance.name},</p>
-      
-      <p>Nous vous informons que le statut de votre doléance concernant "${doleance.title}" a été mis à jour.</p>
-      
-      <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #006400; margin: 20px 0;">
-        <p><strong>Statut actuel :</strong> ${getStatusLabel(newStatus)}</p>
-        <p><strong>Catégorie :</strong> ${doleance.category}</p>
-        <p><strong>Date de soumission :</strong> ${getFormattedDate(doleance.created_at)}</p>
-      </div>
-  `;
-  
-  if (response) {
-    htmlContent += `
-      <div style="margin: 20px 0;">
-        <h3 style="color: #006400;">Réponse du député :</h3>
-        <p style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">${response}</p>
-      </div>
-    `;
-  }
-  
-  htmlContent += `
-      <p>Si vous avez des questions supplémentaires, n'hésitez pas à nous contacter.</p>
-      
-      <p style="margin-top: 30px;">Cordialement,</p>
-      <p>
-        <strong>Guy Marius Sagna</strong><br>
-        Député à l'Assemblée nationale du Sénégal
-      </p>
-      
-      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 12px;">
-        <p>Ceci est un message automatique, merci de ne pas y répondre directement.</p>
-      </div>
-    </div>
-  `;
-  
-  console.log(`Envoi d'email à ${doleance.email} avec le sujet "${subject}"`);
-  
-  const emailResult = await resend.emails.send({
-    from: "Assemblée Nationale du Sénégal <onboarding@resend.dev>",
-    to: [doleance.email],
-    subject: subject,
-    html: htmlContent,
-  });
-  
-  console.log("Résultat de l'envoi d'email:", emailResult);
-  return emailResult;
-}
-
-async function sendAudienceEmail(audience: any, newStatus: string) {
-  console.log("Préparation de l'email pour l'audience:", audience.id);
-  
-  const subject = getAudienceEmailSubject(newStatus);
-  
-  let meetingDetails = "";
-  if (newStatus === "scheduled" && audience.meeting_date) {
-    meetingDetails = `
-      <div style="background-color: #eaf6ea; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        <h3 style="color: #006400; margin-top: 0;">Détails de votre audience</h3>
-        <p><strong>Date et heure :</strong> ${getFormattedDate(audience.meeting_date)}</p>
-        <p><strong>Lieu :</strong> Bureau du député, Ziguinchor</p>
-        <p>Veuillez vous présenter 15 minutes avant l'heure prévue.</p>
-      </div>
-    `;
-  }
-  
-  const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #006400; margin-bottom: 10px;">Bureau du Député Guy Marius Sagna</h1>
-        <h2 style="color: #006400; margin-top: 0;">Ziguinchor, Sénégal</h2>
-      </div>
-      
-      <p>Cher/Chère ${audience.name},</p>
-      
-      <p>Nous vous informons que le statut de votre demande d'audience concernant "${audience.subject}" a été mis à jour.</p>
-      
-      <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #006400; margin: 20px 0;">
-        <p><strong>Statut actuel :</strong> ${getStatusLabel(newStatus)}</p>
-        <p><strong>Date de soumission :</strong> ${getFormattedDate(audience.created_at)}</p>
-      </div>
-      
-      ${meetingDetails}
-      
-      ${audience.response ? `
-        <div style="margin: 20px 0;">
-          <h3 style="color: #006400;">Message du député :</h3>
-          <p style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">${audience.response}</p>
-        </div>
-      ` : ''}
-      
-      <p>Si vous avez des questions ou si vous devez modifier votre rendez-vous, n'hésitez pas à nous contacter.</p>
-      
-      <p style="margin-top: 30px;">Cordialement,</p>
-      <p>
-        <strong>Guy Marius Sagna</strong><br>
-        Député à l'Assemblée nationale du Sénégal
-      </p>
-      
-      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 12px;">
-        <p>Ceci est un message automatique, merci de ne pas y répondre directement.</p>
-      </div>
-    </div>
-  `;
-  
-  console.log(`Envoi d'email à ${audience.email} avec le sujet "${subject}"`);
-  
-  const emailResult = await resend.emails.send({
-    from: "Assemblée Nationale du Sénégal <onboarding@resend.dev>",
-    to: [audience.email],
-    subject: subject,
-    html: htmlContent,
-  });
-  
-  console.log("Résultat de l'envoi d'email:", emailResult);
-  return emailResult;
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders,
+    });
   }
-
+  
   try {
-    console.log("Réception d'une requête de notification");
+    const requestData: EmailPayload = await req.json();
+    const { type, id, newStatus, adminEmail, replyToEmail, response } = requestData;
     
-    const { type, id, newStatus, response } = await req.json() as NotificationRequest;
+    console.log("Données de la requête:", requestData);
     
-    console.log("Données reçues:", { type, id, newStatus, response });
+    // Récupérer les détails de la doléance ou audience
+    const { data: itemData, error: itemError } = await fetch(
+      `${Deno.env.get("SUPABASE_URL")}/rest/v1/${type === "doleance" ? "doleances" : "audiences"}?id=eq.${id}&select=*`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+        }
+      }
+    ).then(res => res.json());
     
-    if (!type || !id || !newStatus) {
-      throw new Error("Données de notification incomplètes");
+    if (itemError || !itemData || itemData.length === 0) {
+      console.error(`Erreur lors de la récupération de ${type}:`, itemError);
+      throw new Error(`Erreur lors de la récupération de ${type}: ${itemError?.message || "Données non trouvées"}`);
     }
     
-    let emailResult;
+    const item = itemData[0];
+    console.log(`${type} récupéré:`, item);
+    
+    // Préparer le contenu de l'email en fonction du type et du statut
+    let emailSubject = "";
+    let emailHtml = "";
+    let recipientEmail = item.email;
+    
+    const getStatusLabel = (status: string) => {
+      switch (status) {
+        case "submitted": return "Soumise";
+        case "in_progress": return "En cours de traitement";
+        case "completed": return "Complétée";
+        case "rejected": return "Rejetée";
+        case "pending": return "En attente";
+        case "approved": return "Approuvée";
+        default: return status;
+      }
+    };
     
     if (type === "doleance") {
-      const doleance = await getDoleanceDetails(id);
-      emailResult = await sendDoleanceEmail(doleance, newStatus, response);
+      emailSubject = `Mise à jour de votre question - ${item.title}`;
+      emailHtml = `
+        <h1>Mise à jour de votre question</h1>
+        <p>Bonjour ${item.name},</p>
+        <p>Votre question "${item.title}" a été mise à jour avec le statut: <strong>${getStatusLabel(newStatus)}</strong>.</p>
+        ${response ? `<p><strong>Réponse:</strong></p><p>${response}</p>` : ""}
+        <p>Si vous avez des questions supplémentaires, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
+        <p>Cordialement,<br>L'administration de Guédiawaye</p>
+      `;
     } else if (type === "audience") {
-      const audience = await getAudienceDetails(id);
-      emailResult = await sendAudienceEmail(audience, newStatus);
-    } else {
-      throw new Error(`Type de notification non pris en charge: ${type}`);
+      emailSubject = `Mise à jour de votre demande d'audience - ${item.subject}`;
+      
+      let meetingInfo = "";
+      if (newStatus === "approved" && item.meeting_date) {
+        const meetingDate = new Date(item.meeting_date);
+        meetingInfo = `
+          <p>Nous avons le plaisir de vous informer que votre audience a été programmée pour le:</p>
+          <p><strong>${meetingDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong></p>
+        `;
+      }
+      
+      emailHtml = `
+        <h1>Mise à jour de votre demande d'audience</h1>
+        <p>Bonjour ${item.name},</p>
+        <p>Votre demande d'audience concernant "${item.subject}" a été mise à jour avec le statut: <strong>${getStatusLabel(newStatus)}</strong>.</p>
+        ${meetingInfo}
+        ${response ? `<p><strong>Message:</strong></p><p>${response}</p>` : ""}
+        <p>Si vous avez des questions, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
+        <p>Cordialement,<br>L'administration de Guédiawaye</p>
+      `;
     }
     
-    console.log("Notification envoyée avec succès");
+    // Configurer l'adresse de réponse (Reply-To)
+    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser l'adresse mniane6426@gmail.com par défaut
+    
+    // Envoyer l'email à l'utilisateur
+    const emailOptions = {
+      from: "Guédiawaye Municipal <contact@gmsagna.com>",
+      to: [recipientEmail],
+      subject: emailSubject,
+      html: emailHtml,
+      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à l'adresse spécifiée
+    };
+    
+    // Si une adresse admin est fournie et qu'il y a une réponse, envoyer une copie à l'admin
+    if (adminEmail && response) {
+      emailOptions.cc = [adminEmail];
+    }
+    
+    console.log("Envoi de l'email avec options:", emailOptions);
+    
+    const { data: emailData, error: emailError } = await resend.emails.send(emailOptions);
+    
+    if (emailError) {
+      console.error("Erreur lors de l'envoi de l'email:", emailError);
+      throw emailError;
+    }
+    
+    console.log("Email envoyé avec succès:", emailData);
     
     return new Response(
-      JSON.stringify({ success: true, message: "Notification envoyée", data: emailResult }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  } catch (error: any) {
-    console.error("Erreur lors de l'envoi de la notification:", error);
-    
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: `Erreur lors de l'envoi de l'email: ${error.message}` 
+      JSON.stringify({
+        success: true,
+        message: `Notification envoyée avec succès à ${recipientEmail}`,
+        data: emailData
       }),
       {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+        status: 200,
+      }
+    );
+    
+  } catch (error) {
+    console.error("Erreur dans la fonction send-notification:", error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message || "Une erreur s'est produite lors de l'envoi de la notification",
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

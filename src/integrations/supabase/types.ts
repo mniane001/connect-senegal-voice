@@ -212,26 +212,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      submit_audience_request: {
-        Args: {
-          p_name: string
-          p_email: string
-          p_phone: string
-          p_subject: string
-          p_message: string
-        }
-        Returns: string
-      }
-      submit_doleance: {
-        Args: {
-          p_name: string
-          p_email: string
-          p_title: string
-          p_category: string
-          p_description: string
-        }
-        Returns: string
-      }
     }
     Enums: {
       user_role: "admin" | "user"
