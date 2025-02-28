@@ -1,253 +1,265 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-interface EmailPayload {
+interface RequestBody {
   type: "doleance" | "audience";
   id: string;
   newStatus: string;
-  adminEmail?: string;
-  replyToEmail?: string;
+  adminEmail: string;
+  replyToEmail: string;
   response?: string;
 }
+
+// Supabase client
+const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+    return new Response(null, { headers: corsHeaders });
   }
-  
+
   try {
-    const requestData: EmailPayload = await req.json();
-    const { type, id, newStatus, adminEmail, replyToEmail, response } = requestData;
-    
-    console.log("Données de la requête:", requestData);
-    
-    // Récupérer les détails de la doléance ou audience
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const tableName = type === "doleance" ? "doleances" : "audiences";
-    
-    console.log(`Tentative de récupération depuis la table ${tableName} pour l'ID: ${id}`);
-    
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=*`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`
-        }
-      }
-    );
-    
-    if (!res.ok) {
-      console.error(`Erreur HTTP lors de la récupération depuis ${tableName}:`, res.status, res.statusText);
-      throw new Error(`Erreur HTTP ${res.status}: ${res.statusText}`);
+    const requestBody: RequestBody = await req.json();
+    console.log("Traitement de la notification:", requestBody);
+
+    if (!requestBody.type || !requestBody.id || !requestBody.newStatus) {
+      console.error("Données requises manquantes dans la requête");
+      throw new Error("Les champs type, id et newStatus sont requis");
     }
-    
-    const itemData = await res.json();
-    
-    if (!itemData || itemData.length === 0) {
-      console.error(`Aucune donnée trouvée dans ${tableName} pour l'ID: ${id}`);
-      throw new Error(`Erreur lors de la récupération de ${type}: Données non trouvées pour l'ID ${id}`);
-    }
-    
-    const item = itemData[0];
-    console.log(`${type} récupéré:`, item);
-    
-    // Préparer le contenu de l'email en fonction du type et du statut
-    let emailSubject = "";
-    let emailHtml = "";
-    let recipientEmail = item.email;
-    
-    const getStatusLabel = (status: string) => {
-      switch (status) {
-        case "submitted": return "Soumise";
-        case "in_progress": return "En cours de traitement";
-        case "completed": return "Complétée";
-        case "rejected": return "Rejetée";
-        case "pending": return "En attente";
-        case "approved": return "Approuvée";
-        default: return status;
+
+    // Préparer les données pour l'email en fonction du type
+    let emailData = null;
+    let userEmail = "";
+    const deputyName = "Guy Marius Sagna";
+    const deputyLocation = "Ziguinchor";
+
+    // Récupérer les données nécessaires en fonction du type de notification
+    if (requestBody.type === "doleance") {
+      console.log("Récupération des données de la doléance:", requestBody.id);
+      const { data: doleance, error } = await supabase
+        .from("doleances")
+        .select("*")
+        .eq("id", requestBody.id)
+        .single();
+
+      if (error || !doleance) {
+        console.error("Erreur lors de la récupération de la doléance:", error);
+        throw new Error("Erreur lors de la récupération de la doléance: " + (error?.message || "Données non trouvées"));
       }
-    };
-    
-    const deputyName = "Guy Marius SAGNA";
-    const deputyTitle = "Député à l'Assemblée Nationale du Sénégal";
-    
-    if (type === "doleance") {
-      emailSubject = `[IMPORTANT] Mise à jour de votre doléance - ${item.title}`;
-      emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 5px; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #1a5276; margin: 0;">Mise à jour de votre doléance</h1>
-            <p style="color: #777; font-style: italic;">Bureau du Député ${deputyName}</p>
-          </div>
-          
-          <div style="margin-bottom: 30px;">
-            <p>Cher(e) ${item.name},</p>
-            <p>Nous vous informons que votre doléance concernant "<strong>${item.title}</strong>" a été mise à jour.</p>
-            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #1a5276; margin: 15px 0;">
-              <p style="margin: 0;"><strong>Nouveau statut:</strong> ${getStatusLabel(newStatus)}</p>
+
+      console.log("Doléance récupérée:", doleance);
+      userEmail = doleance.email;
+
+      // Définir le contenu de l'email en fonction du statut
+      const statusMappings = {
+        submitted: "soumise et est en attente d'examen",
+        in_progress: "en cours de traitement",
+        completed: "traitée",
+        rejected: "rejetée",
+      };
+
+      const statusFrench = statusMappings[requestBody.newStatus as keyof typeof statusMappings] || requestBody.newStatus;
+
+      emailData = {
+        subject: `Mise à jour de votre question écrite - ${doleance.title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #006400;">Mise à jour de votre question écrite</h2>
             </div>
-          </div>
-          
-          ${response ? `
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #1a5276; font-size: 18px; border-bottom: 1px solid #e1e1e1; padding-bottom: 8px;">Réponse du bureau du député:</h2>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
-              <p>${response.replace(/\n/g, '<br>')}</p>
+            
+            <p>Cher/Chère <strong>${doleance.name}</strong>,</p>
+            
+            <p>Le député <strong>${deputyName}</strong> vous informe que votre question écrite intitulée "<strong>${doleance.title}</strong>" a été <strong>${statusFrench}</strong>.</p>
+            
+            ${requestBody.response ? `
+            <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #006400; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Réponse du député :</h3>
+              <p>${requestBody.response.replace(/\n/g, '<br>')}</p>
             </div>
+            ` : ''}
+            
+            <p>Vous pouvez suivre l'évolution de votre question sur notre plateforme.</p>
+            
+            <p>Bien cordialement,</p>
+            <p><strong>Bureau du député ${deputyName}</strong><br>
+            ${deputyLocation}</p>
+          </div>
+        `,
+      };
+    } else if (requestBody.type === "audience") {
+      console.log("Récupération des données de l'audience:", requestBody.id);
+      const { data: audience, error } = await supabase
+        .from("audiences")
+        .select("*")
+        .eq("id", requestBody.id)
+        .single();
+
+      if (error || !audience) {
+        console.error("Erreur lors de la récupération de l'audience:", error);
+        throw new Error("Erreur lors de la récupération de audience: " + (error?.message || "Données non trouvées"));
+      }
+
+      console.log("Audience récupérée:", audience);
+      userEmail = audience.email;
+
+      // Définir le statut en français
+      const statusMappings = {
+        pending: "en attente d'examen",
+        approved: "approuvée",
+        rejected: "rejetée",
+        completed: "terminée",
+      };
+
+      const statusFrench = statusMappings[requestBody.newStatus as keyof typeof statusMappings] || requestBody.newStatus;
+
+      // Formater la date si elle existe
+      let meetingDateFormatted = "";
+      if (audience.meeting_date) {
+        const meetingDate = new Date(audience.meeting_date);
+        meetingDateFormatted = meetingDate.toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Construire le contenu de l'email en fonction du statut
+      let statusSpecificContent = "";
+      if (requestBody.newStatus === "approved") {
+        statusSpecificContent = `
+          <p>Nous sommes heureux de vous informer que votre demande d'audience avec le député <strong>${deputyName}</strong> a été <strong>approuvée</strong>.</p>
+          ${meetingDateFormatted ? `
+          <div style="background-color: #f0f7ff; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #0066cc;">Détails du rendez-vous :</h3>
+            <p><strong>Date et heure :</strong> ${meetingDateFormatted}</p>
+            <p><strong>Lieu :</strong> Bureau du député à ${deputyLocation}</p>
           </div>
           ` : ''}
-          
-          <div style="margin-top: 30px; border-top: 1px solid #e1e1e1; padding-top: 20px;">
-            <p>Si vous avez des questions supplémentaires, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
-            <p>Cordialement,</p>
-            <p>
-              <strong>${deputyName}</strong><br>
-              ${deputyTitle}<br>
-              <em>Bureau de la Circonscription de Guédiawaye</em>
-            </p>
-          </div>
-        </div>
-      `;
-    } else if (type === "audience") {
-      emailSubject = `[IMPORTANT] Mise à jour de votre demande d'audience avec ${deputyName}`;
-      
-      let meetingInfo = "";
-      if (newStatus === "approved" && item.meeting_date) {
-        const meetingDate = new Date(item.meeting_date);
-        const options = { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric', 
-          hour: '2-digit', 
-          minute: '2-digit'
-        };
-        const formattedDate = meetingDate.toLocaleDateString('fr-FR', options as Intl.DateTimeFormatOptions);
-        
-        meetingInfo = `
-          <div style="background-color: #e8f4fc; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h2 style="color: #1a5276; font-size: 18px; margin-top: 0;">Confirmation de la date d'audience</h2>
-            <p>Nous avons le plaisir de vous informer que votre audience a été programmée pour:</p>
-            <p style="font-size: 18px; text-align: center; font-weight: bold; color: #1a5276; margin: 15px 0;">
-              ${formattedDate}
-            </p>
-            <p style="font-style: italic; color: #666;">Lieu: Bureau de la circonscription de Guédiawaye</p>
-            <p>Merci de vous présenter 15 minutes avant l'heure prévue avec une pièce d'identité.</p>
-          </div>
+        `;
+      } else if (requestBody.newStatus === "rejected") {
+        statusSpecificContent = `
+          <p>Nous regrettons de vous informer que votre demande d'audience avec le député <strong>${deputyName}</strong> a été <strong>rejetée</strong>.</p>
+          <p>Le député reçoit de nombreuses demandes et ne peut malheureusement pas répondre favorablement à toutes.</p>
+        `;
+      } else {
+        statusSpecificContent = `
+          <p>Nous vous informons que votre demande d'audience avec le député <strong>${deputyName}</strong> est actuellement <strong>${statusFrench}</strong>.</p>
         `;
       }
-      
-      emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 5px; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #1a5276; margin: 0;">Mise à jour de votre demande d'audience</h1>
-            <p style="color: #777; font-style: italic;">Bureau du Député ${deputyName}</p>
-          </div>
-          
-          <div style="margin-bottom: 20px;">
-            <p>Cher(e) ${item.name},</p>
-            <p>Nous vous informons que votre demande d'audience concernant "<strong>${item.subject}</strong>" a été mise à jour.</p>
-            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #1a5276; margin: 15px 0;">
-              <p style="margin: 0;"><strong>Nouveau statut:</strong> ${getStatusLabel(newStatus)}</p>
+
+      emailData = {
+        subject: `Mise à jour de votre demande d'audience - ${audience.subject}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #006400;">Mise à jour de votre demande d'audience</h2>
             </div>
-          </div>
-          
-          ${meetingInfo}
-          
-          ${response ? `
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #1a5276; font-size: 18px; border-bottom: 1px solid #e1e1e1; padding-bottom: 8px;">Message du bureau du député:</h2>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
-              <p>${response.replace(/\n/g, '<br>')}</p>
+            
+            <p>Cher/Chère <strong>${audience.name}</strong>,</p>
+            
+            ${statusSpecificContent}
+            
+            ${requestBody.response ? `
+            <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #006400; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Message du bureau du député :</h3>
+              <p>${requestBody.response.replace(/\n/g, '<br>')}</p>
             </div>
+            ` : ''}
+            
+            <p>Pour toute question supplémentaire, n'hésitez pas à nous contacter.</p>
+            
+            <p>Bien cordialement,</p>
+            <p><strong>Bureau du député ${deputyName}</strong><br>
+            ${deputyLocation}</p>
           </div>
-          ` : ''}
-          
-          <div style="margin-top: 30px; border-top: 1px solid #e1e1e1; padding-top: 20px;">
-            <p>Si vous avez des questions, n'hésitez pas à nous contacter en répondant directement à cet email.</p>
-            <p>Cordialement,</p>
-            <p>
-              <strong>${deputyName}</strong><br>
-              ${deputyTitle}<br>
-              <em>Bureau de la Circonscription de Guédiawaye</em>
-            </p>
-          </div>
-        </div>
-      `;
+        `,
+      };
+    } else {
+      throw new Error(`Type de notification non pris en charge: ${requestBody.type}`);
     }
+
+    if (!emailData) {
+      throw new Error("Impossible de générer les données de l'email");
+    }
+
+    // Envoyer l'email via l'API de Resend
+    console.log("Envoi de l'email à:", userEmail);
     
-    // Configurer l'adresse de réponse (Reply-To)
-    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser mniane6426@gmail.com par défaut
-    
-    // Envoyer l'email à l'utilisateur
-    const emailOptions = {
-      from: "Bureau de Guy Marius SAGNA <contact@gmsagna.com>",
-      to: [recipientEmail],
-      subject: emailSubject,
-      html: emailHtml,
-      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à mniane6426@gmail.com
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      throw new Error("Clé API Resend non configurée");
+    }
+
+    // Conversion du corps du message en payload pour l'API Resend
+    const emailPayload = {
+      from: `Député Guy Marius Sagna <${requestBody.adminEmail}>`,
+      to: userEmail,
+      reply_to: requestBody.replyToEmail, // Adresse de réponse
+      subject: emailData.subject,
+      html: emailData.html,
     };
-    
-    // Si une adresse admin est fournie, envoyer une copie à l'admin
-    if (adminEmail) {
-      // Toujours envoyer une copie à mniane6426@gmail.com
-      emailOptions.cc = [adminEmail];
+
+    console.log("Préparation de l'envoi d'email avec payload:", {
+      to: emailPayload.to,
+      subject: emailPayload.subject,
+      from: emailPayload.from,
+      reply_to: emailPayload.reply_to,
+    });
+
+    // Appel à l'API Resend
+    const resendResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(emailPayload),
+    });
+
+    const resendData = await resendResponse.json();
+    console.log("Réponse de l'API Resend:", resendData);
+
+    if (!resendResponse.ok) {
+      throw new Error(`Erreur lors de l'envoi de l'email: ${JSON.stringify(resendData)}`);
     }
-    
-    console.log("Envoi de l'email avec options:", emailOptions);
-    
-    const { data: emailData, error: emailError } = await resend.emails.send(emailOptions);
-    
-    if (emailError) {
-      console.error("Erreur lors de l'envoi de l'email:", emailError);
-      throw emailError;
-    }
-    
-    console.log("Email envoyé avec succès:", emailData);
-    
+
+    // Retourner la réponse
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Notification envoyée avec succès à ${recipientEmail}`,
-        data: emailData
+        message: "Notification envoyée avec succès",
+        emailSent: true,
+        emailId: resendData.id,
       }),
       {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       }
     );
-    
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur dans la fonction send-notification:", error);
     
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Une erreur s'est produite lors de l'envoi de la notification",
+        message: error.message || "Une erreur s'est produite",
+        error: error.stack || String(error),
       }),
       {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
       }
     );
