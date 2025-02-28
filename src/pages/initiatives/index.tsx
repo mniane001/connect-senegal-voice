@@ -26,11 +26,12 @@ const InitiativesPage = () => {
         </div>
         
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid grid-cols-1 md:grid-cols-4 h-auto mb-8">
+          <TabsList className="grid grid-cols-1 md:grid-cols-5 h-auto mb-8">
             <TabsTrigger value="all" className="text-base py-3">Toutes les initiatives</TabsTrigger>
             <TabsTrigger value="written" className="text-base py-3">Questions écrites</TabsTrigger>
             <TabsTrigger value="oral" className="text-base py-3">Questions orales</TabsTrigger>
             <TabsTrigger value="laws" className="text-base py-3">Propositions de loi</TabsTrigger>
+            <TabsTrigger value="commissions" className="text-base py-3">Commissions d'enquête</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
@@ -98,6 +99,18 @@ const InitiativesPage = () => {
                 icon="BookOpen"
                 href="/initiatives/propositions-loi"
                 count={5}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="commissions">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <InitiativeCard 
+                title="Commissions d'enquête" 
+                description="Initiatives pour la création de commissions d'investigation parlementaire"
+                icon="Users"
+                href="/initiatives/commissions-enquete"
+                count={2}
               />
             </div>
           </TabsContent>
