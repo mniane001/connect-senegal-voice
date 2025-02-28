@@ -1,69 +1,55 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { MessageSquare, Video } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Initiative {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+  ministry?: string;
+  legislature: string;
+  video_url?: string;
+}
 
 const QuestionsOralesPage = () => {
   const [selectedTab, setSelectedTab] = useState("15");
 
-  const questions = {
-    "15": [
-      {
-        id: 1,
-        title: "Interpellation sur l'accès à l'eau potable",
-        description: "Question posée lors de la session plénière concernant la distribution d'eau...",
-        date: "10 Février 2024",
-        hasVideo: true,
-        ministry: "Ministère de l'Hydraulique",
-      },
-      {
-        id: 2,
-        title: "La situation de l'emploi des jeunes",
-        description: "Session plénière sur les politiques d'emploi et l'insertion professionnelle...",
-        date: "5 Février 2024",
-        hasVideo: true,
-        ministry: "Ministère de l'Emploi",
-      },
-      {
-        id: 3,
-        title: "Débat sur la politique énergétique",
-        description: "Question sur la transition énergétique et l'accès à l'électricité...",
-        date: "1 Février 2024",
-        hasVideo: true,
-        ministry: "Ministère de l'Énergie",
-      },
-    ],
-    "14": [
-      {
-        id: 4,
-        title: "Sécurité alimentaire",
-        description: "Question sur les mesures pour assurer la sécurité alimentaire...",
-        date: "25 Janvier 2022",
-        hasVideo: true,
-        ministry: "Ministère de l'Agriculture",
-      },
-      {
-        id: 5,
-        title: "Qualité de l'éducation",
-        description: "Débat sur la qualité de l'enseignement et les conditions d'apprentissage...",
-        date: "20 Janvier 2022",
-        hasVideo: false,
-        ministry: "Ministère de l'Éducation",
-      },
-      {
-        id: 6,
-        title: "Infrastructure routière",
-        description: "Question sur l'état des routes et les projets de développement...",
-        date: "15 Janvier 2022",
-        hasVideo: true,
-        ministry: "Ministère des Infrastructures",
+  const { data: questions, isLoading } = useQuery({
+    queryKey: ["questions-orales", selectedTab],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .select("*")
+        .eq("type", "question_orale")
+        .eq("legislature", selectedTab)
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur lors de la récupération des questions:", error);
+        return [];
       }
-    ]
+
+      return data as Initiative[];
+    }
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -125,47 +111,58 @@ const QuestionsOralesPage = () => {
         </Tabs>
 
         <div className="overflow-hidden rounded-xl shadow-md bg-white mb-8">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[400px]">Question</TableHead>
-                <TableHead>Ministère</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Vidéo</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {questions[selectedTab as keyof typeof questions].map((question) => (
-                <TableRow key={question.id}>
-                  <TableCell className="font-medium">
-                    {question.title}
-                    <p className="text-sm text-gray-500 mt-1">{question.description}</p>
-                  </TableCell>
-                  <TableCell>{question.ministry}</TableCell>
-                  <TableCell>{question.date}</TableCell>
-                  <TableCell>
-                    {question.hasVideo ? (
-                      <span className="flex items-center text-green-600">
-                        <Video className="w-4 h-4 mr-1" />
-                        Disponible
-                      </span>
-                    ) : (
-                      <span className="text-gray-500">Non disponible</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link 
-                      to={`/initiatives/questions-orales/${question.id}`}
-                      className="text-assembly-blue hover:underline"
-                    >
-                      Voir le détail
-                    </Link>
-                  </TableCell>
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin h-10 w-10 border-4 border-assembly-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des questions...</p>
+            </div>
+          ) : questions && questions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[400px]">Question</TableHead>
+                  <TableHead>Ministère</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Vidéo</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {questions.map((question) => (
+                  <TableRow key={question.id}>
+                    <TableCell className="font-medium">
+                      {question.title}
+                      <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                    </TableCell>
+                    <TableCell>{question.ministry || "Non spécifié"}</TableCell>
+                    <TableCell>{formatDate(question.created_at)}</TableCell>
+                    <TableCell>
+                      {question.video_url ? (
+                        <span className="flex items-center text-green-600">
+                          <Video className="w-4 h-4 mr-1" />
+                          Disponible
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">Non disponible</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link 
+                        to={`/initiatives/questions-orales/${question.id}`}
+                        className="text-assembly-blue hover:underline"
+                      >
+                        Voir le détail
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-gray-600">Aucune question orale disponible pour cette législature.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-assembly-blue/5 p-6 rounded-lg">

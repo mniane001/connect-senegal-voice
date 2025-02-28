@@ -1,61 +1,69 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { Users } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Initiative {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+  status: string;
+  legislature: string;
+}
 
 const CommissionsEnquetePage = () => {
   const [selectedTab, setSelectedTab] = useState("15");
 
-  const commissions = {
-    "15": [
-      {
-        id: 1,
-        title: "Commission sur la gestion des ressources minières",
-        description: "Proposition de création d'une commission d'enquête sur la gestion des ressources...",
-        date: "5 Janvier 2024",
-        status: "En cours d'examen",
-        result: null,
-      },
-      {
-        id: 2,
-        title: "Enquête sur la gestion des fonds COVID-19",
-        description: "Commission d'enquête sur l'utilisation des ressources pendant la pandémie...",
-        date: "15 Décembre 2023",
-        status: "En cours d'examen",
-        result: null,
-      },
-    ],
-    "14": [
-      {
-        id: 3,
-        title: "Audit des marchés publics",
-        description: "Commission d'enquête sur la transparence des processus d'attribution...",
-        date: "1 Décembre 2021",
-        status: "Terminée",
-        result: "Rapport publié",
-      },
-      {
-        id: 4,
-        title: "Gestion des terres agricoles",
-        description: "Enquête sur l'attribution et la gestion des terres agricoles...",
-        date: "15 Novembre 2021",
-        status: "Terminée",
-        result: "Rapport confidentiel",
-      },
-      {
-        id: 5,
-        title: "Privatisation des entreprises publiques",
-        description: "Enquête sur les conditions de cession des actifs de l'État...",
-        date: "10 Octobre 2021",
-        status: "Rejetée",
-        result: null,
+  const { data: commissions, isLoading } = useQuery({
+    queryKey: ["commissions-enquete", selectedTab],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .select("*")
+        .eq("type", "commission_enquete")
+        .eq("legislature", selectedTab)
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur lors de la récupération des commissions:", error);
+        return [];
       }
-    ]
+
+      return data as Initiative[];
+    }
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return { label: "Proposée", class: "bg-yellow-100 text-yellow-800" };
+      case "in_progress":
+        return { label: "En cours", class: "bg-blue-100 text-blue-800" };
+      case "completed":
+        return { label: "Terminée", class: "bg-green-100 text-green-800" };
+      case "rejected":
+        return { label: "Rejetée", class: "bg-red-100 text-red-800" };
+      default:
+        return { label: status, class: "bg-gray-100 text-gray-800" };
+    }
   };
 
   return (
@@ -99,7 +107,7 @@ const CommissionsEnquetePage = () => {
                 15e Législature (2022-2027)
               </h2>
               <p className="text-gray-600 mb-4">
-                Commissions d'enquête proposées pendant la législature actuelle
+                Commissions d'enquête initiées pendant la législature actuelle
               </p>
             </div>
           </TabsContent>
@@ -110,53 +118,61 @@ const CommissionsEnquetePage = () => {
                 14e Législature (2017-2022)
               </h2>
               <p className="text-gray-600 mb-4">
-                Commissions d'enquête proposées pendant la législature précédente
+                Commissions d'enquête initiées pendant la législature précédente
               </p>
             </div>
           </TabsContent>
         </Tabs>
 
         <div className="overflow-hidden rounded-xl shadow-md bg-white mb-8">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[400px]">Commission</TableHead>
-                <TableHead>Date de proposition</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Résultat</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {commissions[selectedTab as keyof typeof commissions].map((commission) => (
-                <TableRow key={commission.id}>
-                  <TableCell className="font-medium">
-                    {commission.title}
-                    <p className="text-sm text-gray-500 mt-1">{commission.description}</p>
-                  </TableCell>
-                  <TableCell>{commission.date}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      commission.status === "Terminée" ? "bg-green-100 text-green-800" :
-                      commission.status === "Rejetée" ? "bg-red-100 text-red-800" :
-                      "bg-blue-100 text-blue-800"
-                    }`}>
-                      {commission.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{commission.result || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <Link 
-                      to={`/initiatives/commissions-enquete/${commission.id}`}
-                      className="text-assembly-blue hover:underline"
-                    >
-                      Voir le détail
-                    </Link>
-                  </TableCell>
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin h-10 w-10 border-4 border-assembly-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des commissions...</p>
+            </div>
+          ) : commissions && commissions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[400px]">Titre</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {commissions.map((commission) => {
+                  const statusDisplay = getStatusDisplay(commission.status);
+                  return (
+                    <TableRow key={commission.id}>
+                      <TableCell className="font-medium">
+                        {commission.title}
+                        <p className="text-sm text-gray-500 mt-1">{commission.description}</p>
+                      </TableCell>
+                      <TableCell>{formatDate(commission.created_at)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay.class}`}>
+                          {statusDisplay.label}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link 
+                          to={`/initiatives/commissions-enquete/${commission.id}`}
+                          className="text-assembly-blue hover:underline"
+                        >
+                          Voir le détail
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-gray-600">Aucune commission d'enquête disponible pour cette législature.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-assembly-blue/5 p-6 rounded-lg">
@@ -164,10 +180,10 @@ const CommissionsEnquetePage = () => {
             À propos des commissions d'enquête
           </h3>
           <p className="mb-4">
-            Les commissions d'enquête parlementaire sont des outils puissants de contrôle de l'action gouvernementale. Elles permettent à l'Assemblée nationale d'investiguer sur des sujets d'intérêt public majeur.
+            Les commissions d'enquête parlementaire sont des organes temporaires créés par l'Assemblée nationale pour investiguer des sujets d'intérêt public. Elles disposent de pouvoirs spéciaux d'investigation et peuvent convoquer des témoins.
           </p>
           <p>
-            Dotées de pouvoirs spéciaux, ces commissions peuvent convoquer des témoins, accéder à des documents confidentiels et produire des rapports détaillés qui peuvent conduire à des réformes législatives ou à des poursuites judiciaires.
+            Leur mission est de faire la lumière sur des dysfonctionnements, d'examiner des situations complexes et de proposer des recommandations pour améliorer l'action publique.
           </p>
         </div>
       </div>

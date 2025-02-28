@@ -1,69 +1,70 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { FileText } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Initiative {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+  status: string;
+  ministry?: string;
+  legislature: string;
+}
 
 const QuestionsEcritesPage = () => {
   const [selectedTab, setSelectedTab] = useState("15");
 
-  const questions = {
-    "15": [
-      {
-        id: 1,
-        title: "Question sur l'accès aux soins dans les zones rurales",
-        description: "Adressée au Ministre de la Santé concernant l'accès aux soins dans les zones rurales...",
-        date: "15 Mars 2024",
-        status: "En attente de réponse",
-        ministry: "Ministère de la Santé",
-      },
-      {
-        id: 2,
-        title: "État des infrastructures scolaires",
-        description: "Adressée au Ministre de l'Éducation concernant la rénovation des écoles...",
-        date: "10 Mars 2024",
-        status: "En attente de réponse",
-        ministry: "Ministère de l'Éducation",
-      },
-      {
-        id: 3,
-        title: "Programme de développement agricole",
-        description: "Adressée au Ministre de l'Agriculture concernant le soutien aux agriculteurs...",
-        date: "5 Mars 2024",
-        status: "Répondu",
-        ministry: "Ministère de l'Agriculture",
-      },
-    ],
-    "14": [
-      {
-        id: 4,
-        title: "Transport public urbain",
-        description: "Adressée au Ministre des Transports concernant la modernisation des transports...",
-        date: "1 Mars 2022",
-        status: "Répondu",
-        ministry: "Ministère des Transports",
-      },
-      {
-        id: 5,
-        title: "Gestion des déchets urbains",
-        description: "Adressée au Ministre de l'Environnement concernant le traitement des déchets...",
-        date: "25 Février 2022",
-        status: "Répondu",
-        ministry: "Ministère de l'Environnement",
-      },
-      {
-        id: 6,
-        title: "Accès à l'eau potable",
-        description: "Question concernant les infrastructures hydrauliques en zone rurale...",
-        date: "15 Janvier 2022",
-        status: "Sans réponse",
-        ministry: "Ministère de l'Hydraulique",
+  const { data: questions, isLoading } = useQuery({
+    queryKey: ["questions-ecrites", selectedTab],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .select("*")
+        .eq("type", "question_ecrite")
+        .eq("legislature", selectedTab)
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur lors de la récupération des questions:", error);
+        return [];
       }
-    ]
+
+      return data as Initiative[];
+    }
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return { label: "En attente de réponse", class: "bg-yellow-100 text-yellow-800" };
+      case "in_progress":
+        return { label: "En cours de traitement", class: "bg-blue-100 text-blue-800" };
+      case "completed":
+        return { label: "Répondu", class: "bg-green-100 text-green-800" };
+      case "rejected":
+        return { label: "Sans réponse", class: "bg-red-100 text-red-800" };
+      default:
+        return { label: status, class: "bg-gray-100 text-gray-800" };
+    }
   };
 
   return (
@@ -125,46 +126,56 @@ const QuestionsEcritesPage = () => {
         </Tabs>
 
         <div className="overflow-hidden rounded-xl shadow-md bg-white mb-8">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[400px]">Question</TableHead>
-                <TableHead>Ministère</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {questions[selectedTab as keyof typeof questions].map((question) => (
-                <TableRow key={question.id}>
-                  <TableCell className="font-medium">
-                    {question.title}
-                    <p className="text-sm text-gray-500 mt-1">{question.description}</p>
-                  </TableCell>
-                  <TableCell>{question.ministry}</TableCell>
-                  <TableCell>{question.date}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      question.status === "Répondu" ? "bg-green-100 text-green-800" :
-                      question.status === "Sans réponse" ? "bg-red-100 text-red-800" :
-                      "bg-yellow-100 text-yellow-800"
-                    }`}>
-                      {question.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link 
-                      to={`/initiatives/questions-ecrites/${question.id}`}
-                      className="text-assembly-blue hover:underline"
-                    >
-                      Voir le détail
-                    </Link>
-                  </TableCell>
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin h-10 w-10 border-4 border-assembly-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des questions...</p>
+            </div>
+          ) : questions && questions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[400px]">Question</TableHead>
+                  <TableHead>Ministère</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {questions.map((question) => {
+                  const statusDisplay = getStatusDisplay(question.status);
+                  return (
+                    <TableRow key={question.id}>
+                      <TableCell className="font-medium">
+                        {question.title}
+                        <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                      </TableCell>
+                      <TableCell>{question.ministry || "Non spécifié"}</TableCell>
+                      <TableCell>{formatDate(question.created_at)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay.class}`}>
+                          {statusDisplay.label}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link 
+                          to={`/initiatives/questions-ecrites/${question.id}`}
+                          className="text-assembly-blue hover:underline"
+                        >
+                          Voir le détail
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-gray-600">Aucune question écrite disponible pour cette législature.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-assembly-blue/5 p-6 rounded-lg">

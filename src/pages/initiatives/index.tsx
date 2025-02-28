@@ -1,12 +1,63 @@
 
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InitiativeCard from "@/components/initiatives/InitiativeCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
 
 const InitiativesPage = () => {
+  // Fonction pour compter les initiatives par type
+  const useInitiativeCounts = () => {
+    return useQuery({
+      queryKey: ["initiative-counts"],
+      queryFn: async () => {
+        const { data: initiatives, error } = await supabase
+          .from("initiatives")
+          .select("type, id")
+          .eq("published", true);
+
+        if (error) {
+          console.error("Erreur lors de la récupération des initiatives:", error);
+          return { 
+            written: 0, 
+            oral: 0, 
+            laws: 0, 
+            commissions: 0,
+            total: 0
+          };
+        }
+
+        // Compter les initiatives par type
+        const counts = initiatives.reduce((acc, initiative) => {
+          switch (initiative.type) {
+            case "question_ecrite":
+              acc.written += 1;
+              break;
+            case "question_orale":
+              acc.oral += 1;
+              break;
+            case "proposition_loi":
+              acc.laws += 1;
+              break;
+            case "commission_enquete":
+              acc.commissions += 1;
+              break;
+          }
+          acc.total += 1;
+          return acc;
+        }, { written: 0, oral: 0, laws: 0, commissions: 0, total: 0 });
+
+        return counts;
+      }
+    });
+  };
+
+  const { data: counts = { written: 0, oral: 0, laws: 0, commissions: 0, total: 0 }, isLoading } = useInitiativeCounts();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -36,34 +87,49 @@ const InitiativesPage = () => {
 
           <TabsContent value="all">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <InitiativeCard 
-                title="Questions écrites" 
-                description="Questions posées par écrit aux ministres pour obtenir des explications sur la politique du gouvernement"
-                icon="FileText"
-                href="/initiatives/questions-ecrites"
-                count={18}
-              />
-              <InitiativeCard 
-                title="Questions orales" 
-                description="Questions posées en séance publique aux membres du gouvernement"
-                icon="MessageSquare"
-                href="/initiatives/questions-orales"
-                count={12}
-              />
-              <InitiativeCard 
-                title="Propositions de loi" 
-                description="Textes législatifs soumis pour améliorer le cadre juridique existant"
-                icon="BookOpen"
-                href="/initiatives/propositions-loi"
-                count={5}
-              />
-              <InitiativeCard 
-                title="Commissions d'enquête" 
-                description="Initiatives pour la création de commissions d'investigation parlementaire"
-                icon="Users"
-                href="/initiatives/commissions-enquete"
-                count={2}
-              />
+              {isLoading ? (
+                Array(4).fill(0).map((_, index) => (
+                  <div key={index} className="card-official p-6 animate-pulse">
+                    <div className="bg-gray-200 rounded-full w-12 h-12 mb-4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <InitiativeCard 
+                    title="Questions écrites" 
+                    description="Questions posées par écrit aux ministres pour obtenir des explications sur la politique du gouvernement"
+                    icon="FileText"
+                    href="/initiatives/questions-ecrites"
+                    count={counts.written}
+                  />
+                  <InitiativeCard 
+                    title="Questions orales" 
+                    description="Questions posées en séance publique aux membres du gouvernement"
+                    icon="MessageSquare"
+                    href="/initiatives/questions-orales"
+                    count={counts.oral}
+                  />
+                  <InitiativeCard 
+                    title="Propositions de loi" 
+                    description="Textes législatifs soumis pour améliorer le cadre juridique existant"
+                    icon="BookOpen"
+                    href="/initiatives/propositions-loi"
+                    count={counts.laws}
+                  />
+                  <InitiativeCard 
+                    title="Commissions d'enquête" 
+                    description="Initiatives pour la création de commissions d'investigation parlementaire"
+                    icon="Users"
+                    href="/initiatives/commissions-enquete"
+                    count={counts.commissions}
+                  />
+                </>
+              )}
             </div>
           </TabsContent>
 
@@ -74,7 +140,7 @@ const InitiativesPage = () => {
                 description="Questions posées par écrit aux ministres pour obtenir des explications sur la politique du gouvernement"
                 icon="FileText"
                 href="/initiatives/questions-ecrites"
-                count={18}
+                count={counts.written}
               />
             </div>
           </TabsContent>
@@ -86,7 +152,7 @@ const InitiativesPage = () => {
                 description="Questions posées en séance publique aux membres du gouvernement"
                 icon="MessageSquare"
                 href="/initiatives/questions-orales"
-                count={12}
+                count={counts.oral}
               />
             </div>
           </TabsContent>
@@ -98,7 +164,7 @@ const InitiativesPage = () => {
                 description="Textes législatifs soumis pour améliorer le cadre juridique existant"
                 icon="BookOpen"
                 href="/initiatives/propositions-loi"
-                count={5}
+                count={counts.laws}
               />
             </div>
           </TabsContent>
@@ -110,7 +176,7 @@ const InitiativesPage = () => {
                 description="Initiatives pour la création de commissions d'investigation parlementaire"
                 icon="Users"
                 href="/initiatives/commissions-enquete"
-                count={2}
+                count={counts.commissions}
               />
             </div>
           </TabsContent>

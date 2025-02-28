@@ -1,56 +1,69 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { BookOpen } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Initiative {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+  status: string;
+  legislature: string;
+}
 
 const PropositionsLoiPage = () => {
   const [selectedTab, setSelectedTab] = useState("15");
 
-  const propositions = {
-    "15": [
-      {
-        id: 1,
-        title: "Loi sur la transparence des industries extractives",
-        description: "Proposition visant à renforcer la transparence dans la gestion des ressources...",
-        date: "20 Décembre 2023",
-        status: "En examen",
-      },
-      {
-        id: 2,
-        title: "Protection des lanceurs d'alerte",
-        description: "Projet de loi pour la protection juridique des dénonciateurs...",
-        date: "10 Décembre 2023",
-        status: "En examen",
-      },
-    ],
-    "14": [
-      {
-        id: 3,
-        title: "Réforme du code de l'environnement",
-        description: "Mise à jour des dispositions relatives à la protection environnementale...",
-        date: "1 Décembre 2022",
-        status: "Rejetée",
-      },
-      {
-        id: 4,
-        title: "Modernisation de la justice",
-        description: "Proposition pour améliorer l'efficacité et l'accessibilité de la justice...",
-        date: "20 Novembre 2022",
-        status: "Adoptée",
-      },
-      {
-        id: 5,
-        title: "Droits des travailleurs",
-        description: "Renforcement des protections sociales et des conditions de travail...",
-        date: "10 Novembre 2021",
-        status: "Adoptée partiellement",
+  const { data: propositions, isLoading } = useQuery({
+    queryKey: ["propositions-loi", selectedTab],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .select("*")
+        .eq("type", "proposition_loi")
+        .eq("legislature", selectedTab)
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur lors de la récupération des propositions:", error);
+        return [];
       }
-    ]
+
+      return data as Initiative[];
+    }
+  });
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return { label: "En examen", class: "bg-blue-100 text-blue-800" };
+      case "completed":
+        return { label: "Adoptée", class: "bg-green-100 text-green-800" };
+      case "rejected":
+        return { label: "Rejetée", class: "bg-red-100 text-red-800" };
+      case "in_progress":
+        return { label: "Adoptée partiellement", class: "bg-yellow-100 text-yellow-800" };
+      default:
+        return { label: status, class: "bg-gray-100 text-gray-800" };
+    }
   };
 
   return (
@@ -112,45 +125,54 @@ const PropositionsLoiPage = () => {
         </Tabs>
 
         <div className="overflow-hidden rounded-xl shadow-md bg-white mb-8">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[400px]">Titre</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {propositions[selectedTab as keyof typeof propositions].map((proposition) => (
-                <TableRow key={proposition.id}>
-                  <TableCell className="font-medium">
-                    {proposition.title}
-                    <p className="text-sm text-gray-500 mt-1">{proposition.description}</p>
-                  </TableCell>
-                  <TableCell>{proposition.date}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      proposition.status === "Adoptée" ? "bg-green-100 text-green-800" :
-                      proposition.status === "Rejetée" ? "bg-red-100 text-red-800" :
-                      proposition.status === "Adoptée partiellement" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-blue-100 text-blue-800"
-                    }`}>
-                      {proposition.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link 
-                      to={`/initiatives/propositions-loi/${proposition.id}`}
-                      className="text-assembly-blue hover:underline"
-                    >
-                      Voir le détail
-                    </Link>
-                  </TableCell>
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin h-10 w-10 border-4 border-assembly-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des propositions...</p>
+            </div>
+          ) : propositions && propositions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[400px]">Titre</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {propositions.map((proposition) => {
+                  const statusDisplay = getStatusDisplay(proposition.status);
+                  return (
+                    <TableRow key={proposition.id}>
+                      <TableCell className="font-medium">
+                        {proposition.title}
+                        <p className="text-sm text-gray-500 mt-1">{proposition.description}</p>
+                      </TableCell>
+                      <TableCell>{formatDate(proposition.created_at)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay.class}`}>
+                          {statusDisplay.label}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link 
+                          to={`/initiatives/propositions-loi/${proposition.id}`}
+                          className="text-assembly-blue hover:underline"
+                        >
+                          Voir le détail
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-gray-600">Aucune proposition de loi disponible pour cette législature.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-assembly-blue/5 p-6 rounded-lg">
