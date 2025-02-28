@@ -89,6 +89,7 @@ const AdminInitiativesPage = () => {
         />
         
         <InitiativeDetailsModal
+          isOpen={!!selectedInitiative}
           initiative={selectedInitiative}
           onClose={() => setSelectedInitiative(null)}
         />
@@ -96,7 +97,7 @@ const AdminInitiativesPage = () => {
         <DeleteInitiativeModal
           initiative={initiativeToDelete}
           onClose={() => setInitiativeToDelete(null)}
-          onConfirm={() => {
+          onSuccess={() => {
             if (initiativeToDelete) {
               handleDeleteInitiative(initiativeToDelete.id);
               setInitiativeToDelete(null);

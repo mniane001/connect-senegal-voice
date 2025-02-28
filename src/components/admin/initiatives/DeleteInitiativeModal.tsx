@@ -1,7 +1,5 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,18 +11,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Initiative } from "./InitiativesList";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-interface DeleteInitiativeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+export interface DeleteInitiativeModalProps {
   initiative: Initiative | null;
+  onClose: () => void;
   onSuccess: () => void;
 }
 
 const DeleteInitiativeModal = ({ 
-  isOpen, 
-  onClose, 
   initiative, 
+  onClose, 
   onSuccess 
 }: DeleteInitiativeModalProps) => {
   const [loading, setLoading] = useState(false);
@@ -62,7 +60,7 @@ const DeleteInitiativeModal = ({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
+    <AlertDialog open={!!initiative} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
