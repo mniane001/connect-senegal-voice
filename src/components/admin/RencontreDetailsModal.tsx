@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -103,8 +102,8 @@ const RencontreDetailsModal = ({
           type: "audience",
           id: rencontreId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com", // Email principal pour toutes les communications
-          replyToEmail: "mniane6426@gmail.com", // S'assurer que les réponses vont à cette adresse
+          adminEmail: "nianemouhamed100@gmail.com", // Email principal pour toutes les communications
+          replyToEmail: "nianemouhamed100@gmail.com", // S'assurer que les réponses vont à cette adresse
           response: response
         }
       });

@@ -34,20 +34,28 @@ serve(async (req) => {
     console.log("Données de la requête:", requestData);
     
     // Récupérer les détails de la doléance ou audience
-    const { data: itemData, error: itemError } = await fetch(
-      `${Deno.env.get("SUPABASE_URL")}/rest/v1/${type === "doleance" ? "doleances" : "audiences"}?id=eq.${id}&select=*`,
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    
+    console.log(`Récupération des données pour ${type} avec ID: ${id}`);
+    
+    const tableName = type === "doleance" ? "doleances" : "audiences";
+    const response_data = await fetch(
+      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=*`,
       {
         headers: {
           "Content-Type": "application/json",
-          "apikey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+          "apikey": supabaseKey,
           "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
         }
       }
-    ).then(res => res.json());
+    );
+
+    const itemData = await response_data.json();
     
-    if (itemError || !itemData || itemData.length === 0) {
-      console.error(`Erreur lors de la récupération de ${type}:`, itemError);
-      throw new Error(`Erreur lors de la récupération de ${type}: ${itemError?.message || "Données non trouvées"}`);
+    if (!itemData || itemData.length === 0) {
+      console.error(`Erreur lors de la récupération de ${type}: Données non trouvées`);
+      throw new Error(`Erreur lors de la récupération de ${type}: Données non trouvées`);
     }
     
     const item = itemData[0];
