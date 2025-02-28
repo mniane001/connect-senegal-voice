@@ -92,14 +92,14 @@ const QuestionDetailsModal = ({
       
       if (error) {
         console.error("Erreur lors de l'envoi de la notification:", error);
-        throw error;
+        return { success: false, error };
       }
       
       console.log("Notification envoyée avec succès:", data);
-      return data;
+      return { success: true, data };
     } catch (error) {
       console.error("Erreur d'invocation de la fonction send-notification:", error);
-      throw error;
+      return { success: false, error };
     }
   };
 
@@ -107,6 +107,7 @@ const QuestionDetailsModal = ({
     try {
       setIsUpdating(true);
       
+      // Mise à jour de la question dans Supabase
       const { error } = await supabase
         .from("doleances")
         .update({
@@ -118,27 +119,26 @@ const QuestionDetailsModal = ({
       if (error) throw error;
       
       // Si le statut a changé, envoyer une notification par email
+      let emailResult = { success: true };
       if (status !== originalStatus) {
-        try {
-          await sendNotificationEmail(question.id, status);
-          toast({
-            title: "Email de notification envoyé",
-            description: `Un email a été envoyé à ${question.email} pour l'informer du changement de statut.`,
-          });
-        } catch (emailError) {
-          console.error("Erreur lors de l'envoi de l'email:", emailError);
-          toast({
-            title: "Mise à jour réussie, mais échec de l'envoi d'email",
-            description: "La question a été mise à jour, mais l'email de notification n'a pas pu être envoyé.",
-            variant: "destructive",
-          });
-        }
+        emailResult = await sendNotificationEmail(question.id, status);
       }
       
-      toast({
-        title: "Réponse enregistrée",
-        description: "La réponse a été enregistrée avec succès.",
-      });
+      // Mise à jour réussie, afficher un toast approprié
+      if (status !== originalStatus && !emailResult.success) {
+        // La question a été mise à jour, mais l'email a échoué
+        toast({
+          title: "Question mise à jour",
+          description: "La question a été mise à jour, mais l'envoi de l'email de notification a échoué. Les utilisateurs ne seront pas notifiés par email pendant la phase de développement.",
+          variant: "default",
+        });
+      } else {
+        // Tout s'est bien passé
+        toast({
+          title: "Réponse enregistrée",
+          description: "La réponse a été enregistrée avec succès. Pendant la phase de développement, les emails sont envoyés à l'adresse de test uniquement.",
+        });
+      }
       
       onStatusUpdate(question.id, status);
       onClose();
@@ -146,7 +146,7 @@ const QuestionDetailsModal = ({
       console.error("Error updating question:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Une erreur s'est produite lors de la mise à jour de la question",
         variant: "destructive",
       });
     } finally {

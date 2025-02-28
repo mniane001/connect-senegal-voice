@@ -120,10 +120,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Envoi d'email à:", audience.email);
       console.log("Contenu de l'email:", html);
 
-      // Envoyer l'email
+      // Envoyer l'email - En phase de test, envoi uniquement à l'adresse de test autorisée
       const emailResponse = await resend.emails.send({
         from: "Bureau du Député <onboarding@resend.dev>",
-        to: [audience.email],
+        to: ["nianemouhamed100@gmail.com"], // Utiliser l'adresse de test autorisée pendant le développement
         subject: subject,
         html: html,
         reply_to: "mniane6426@gmail.com"
@@ -191,10 +191,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Envoi d'email à:", doleance.email);
       console.log("Contenu de l'email:", html);
 
-      // Envoyer l'email
+      // Envoyer l'email - En phase de test, envoi uniquement à l'adresse de test autorisée
       const emailResponse = await resend.emails.send({
         from: "Bureau du Député <onboarding@resend.dev>",
-        to: [doleance.email],
+        to: ["nianemouhamed100@gmail.com"], // Utiliser l'adresse de test autorisée pendant le développement
         subject: subject,
         html: html,
         reply_to: "mniane6426@gmail.com"
@@ -231,3 +231,4 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
+
