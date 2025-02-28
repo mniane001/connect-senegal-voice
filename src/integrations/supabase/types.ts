@@ -61,6 +61,7 @@ export type Database = {
           message: string
           name: string
           phone: string | null
+          response: string | null
           status: string | null
           subject: string
         }
@@ -73,6 +74,7 @@ export type Database = {
           message: string
           name: string
           phone?: string | null
+          response?: string | null
           status?: string | null
           subject: string
         }
@@ -85,6 +87,7 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+          response?: string | null
           status?: string | null
           subject?: string
         }
