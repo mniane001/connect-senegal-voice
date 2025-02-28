@@ -43,6 +43,7 @@ const AudiencePage = () => {
         message,
         created_by: user?.id || null,
         status: "pending", // Statut validé par la contrainte
+        response: null // Champ explicite pour la réponse, initialement vide
       }).select();
 
       if (error) {

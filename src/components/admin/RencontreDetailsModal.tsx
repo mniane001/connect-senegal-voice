@@ -96,6 +96,13 @@ const RencontreDetailsModal = ({
     try {
       setIsUpdating(true);
       
+      console.log("Mise à jour de la demande d'audience:", {
+        id: rencontre.id,
+        status,
+        meeting_date: date ? date.toISOString() : null,
+        response,
+      });
+      
       const { error } = await supabase
         .from("audiences")
         .update({
@@ -105,7 +112,12 @@ const RencontreDetailsModal = ({
         })
         .eq("id", rencontre.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur lors de la mise à jour:", error);
+        throw error;
+      }
+      
+      console.log("Demande d'audience mise à jour avec succès");
       
       toast({
         title: "Demande mise à jour",
