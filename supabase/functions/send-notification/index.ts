@@ -1,15 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.32.0";
-
-// Utiliser le nom correct du secret "gmsagna key" au lieu de "RESEND_API_KEY"
-const resendApiKey = Deno.env.get("gmsagna key");
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-const resend = new Resend(resendApiKey);
-const supabase = createClient(supabaseUrl!, supabaseKey!);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,245 +10,201 @@ const corsHeaders = {
 };
 
 interface NotificationRequest {
-  type: "audience" | "doleance";
-  id: string;
-  newStatus: string;
+  type: "doleance" | "audience"; // Type de notification
+  id: string; // ID de la doleance ou audience
+  newStatus: string; // Nouveau statut
 }
 
-const translateStatus = (status: string): string => {
-  switch (status) {
-    case "pending":
-      return "En attente";
-    case "approved":
-      return "Approuvée";
-    case "rejected":
-      return "Refusée";
-    case "completed":
-      return "Terminée";
-    case "submitted":
-      return "Soumise";
-    case "in_progress":
-      return "En cours de traitement";
-    default:
-      return status;
-  }
-};
-
-const formatDate = (dateStr: string | null): string => {
-  if (!dateStr) return "Non définie";
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
+  // Gestion des requêtes OPTIONS pour CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Clé API Resend utilisée:", resendApiKey ? "Configurée" : "Non configurée");
-    
+    // Récupération des données de la requête
     const { type, id, newStatus }: NotificationRequest = await req.json();
-    console.log(`Notification demandée: ${type} ${id} avec statut ${newStatus}`);
+    console.log(`Traitement de notification pour ${type} avec ID: ${id}, nouveau statut: ${newStatus}`);
 
-    if (type === "audience") {
-      // Récupérer les détails de la demande d'audience
-      const { data: audience, error } = await supabase
-        .from("audiences")
-        .select("*")
-        .eq("id", id)
-        .single();
+    // Variables qui seront définies selon le type
+    let email = "";
+    let name = "";
+    let subject = "";
+    let htmlContent = "";
 
-      if (error) {
-        throw new Error(`Erreur lors de la récupération de l'audience: ${error.message}`);
-      }
-
-      if (!audience) {
-        throw new Error("Audience non trouvée");
-      }
-
-      console.log("Audience récupérée:", audience);
-
-      // Préparer le contenu de l'email selon le statut
-      let subject = `Mise à jour de votre demande d'audience - ${translateStatus(newStatus)}`;
-      let html = `
-        <h1>Mise à jour de votre demande d'audience</h1>
-        <p>Bonjour ${audience.name},</p>
-        <p>Nous vous informons que le statut de votre demande d'audience "${audience.subject}" a été mis à jour:</p>
-        <p><strong>Nouveau statut:</strong> ${translateStatus(newStatus)}</p>
-      `;
-
-      // Ajouter des informations supplémentaires selon le statut
-      if (newStatus === "approved") {
-        html += `
-          <p><strong>Date de rendez-vous:</strong> ${formatDate(audience.meeting_date)}</p>
-          <p><strong>Message:</strong></p>
-          <p>${audience.response || "Aucun message supplémentaire"}</p>
-          <p>Nous vous invitons à vous présenter au bureau du député à l'heure convenue.</p>
-        `;
-      } else if (newStatus === "rejected") {
-        html += `
-          <p><strong>Motif:</strong></p>
-          <p>${audience.response || "Aucun motif spécifié"}</p>
-        `;
-      } else if (newStatus === "completed") {
-        html += `
-          <p><strong>Résumé de la rencontre:</strong></p>
-          <p>${audience.response || "Aucun résumé disponible"}</p>
-        `;
-      }
-
-      html += `
-        <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-        <p>Cordialement,<br>Le bureau du député</p>
-      `;
-
-      console.log("Envoi d'email à:", audience.email);
-      console.log("Contenu de l'email:", html);
-
-      // Envoyer l'email
-      try {
-        const emailResponse = await resend.emails.send({
-          from: "onboarding@resend.dev", // Format simplifié pour éviter les problèmes
-          to: audience.email, // Destinataire réel 
-          subject: subject,
-          html: html,
-          reply_to: "mniane6426@gmail.com"
-        });
-
-        console.log("Email envoyé avec succès:", emailResponse);
-        
-        return new Response(JSON.stringify(emailResponse), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        });
-      } catch (emailError: any) {
-        console.error("Erreur lors de l'envoi de l'email pour audience:", emailError);
-        
-        // Retourner une réponse avec l'erreur mais avec un statut 200
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: emailError.message || "Erreur lors de l'envoi de l'email"
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          }
-        );
-      }
-    } else if (type === "doleance") {
-      // Récupérer les détails de la question citoyenne
-      const { data: doleance, error } = await supabase
+    // Récupération des détails selon le type
+    if (type === "doleance") {
+      const { data: doleance, error: doleanceError } = await supabase
         .from("doleances")
-        .select("*")
+        .select("email, name, title, response")
         .eq("id", id)
         .single();
 
-      if (error) {
-        throw new Error(`Erreur lors de la récupération de la doléance: ${error.message}`);
-      }
-
-      if (!doleance) {
-        throw new Error("Doléance non trouvée");
-      }
-
-      console.log("Doléance récupérée:", doleance);
-
-      // Préparer le contenu de l'email selon le statut
-      let subject = `Mise à jour de votre question citoyenne - ${translateStatus(newStatus)}`;
-      let html = `
-        <h1>Mise à jour de votre question citoyenne</h1>
-        <p>Bonjour ${doleance.name},</p>
-        <p>Nous vous informons que le statut de votre question "${doleance.title}" a été mis à jour:</p>
-        <p><strong>Nouveau statut:</strong> ${translateStatus(newStatus)}</p>
-      `;
-
-      // Ajouter des informations supplémentaires selon le statut
-      if (newStatus === "completed") {
-        html += `
-          <p><strong>Réponse:</strong></p>
-          <p>${doleance.response || "Aucune réponse disponible"}</p>
-        `;
-      } else if (newStatus === "in_progress") {
-        html += `
-          <p>Votre question est en cours de traitement. Nous reviendrons vers vous dès que possible.</p>
-          <p>${doleance.response || ""}</p>
-        `;
-      } else if (newStatus === "rejected") {
-        html += `
-          <p><strong>Motif:</strong></p>
-          <p>${doleance.response || "Aucun motif spécifié"}</p>
-        `;
-      }
-
-      html += `
-        <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-        <p>Cordialement,<br>Le bureau du député</p>
-      `;
-
-      console.log("Envoi d'email à:", doleance.email);
-      console.log("Contenu de l'email:", html);
-
-      try {
-        // Modification clé: simplification de l'adresse d'envoi et utilisation directe de l'adresse email du destinataire
-        const emailResponse = await resend.emails.send({
-          from: "onboarding@resend.dev", // Format simplifié pour éviter les problèmes
-          to: doleance.email, // Destinataire réel
-          subject: subject,
-          html: html,
-          reply_to: "mniane6426@gmail.com"
-        });
-
-        console.log("Email envoyé avec succès:", emailResponse);
-        
-        return new Response(JSON.stringify(emailResponse), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        });
-      } catch (emailError: any) {
-        console.error("Erreur lors de l'envoi de l'email pour doleance:", emailError);
-        
-        // Retourner l'erreur mais avec un statut 200 pour que le frontend puisse traiter l'erreur
+      if (doleanceError) {
+        console.error("Erreur lors de la récupération de la doléance:", doleanceError);
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: emailError.message || "Erreur lors de l'envoi de l'email"
+            error: { message: "Erreur lors de la récupération de la doléance", details: doleanceError } 
           }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
+          { 
+            status: 200, // On retourne 200 même en cas d'erreur pour que l'UI puisse gérer l'erreur
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
           }
         );
       }
+
+      email = doleance.email;
+      name = doleance.name;
+      
+      // Construction du sujet et du contenu selon le statut
+      let statusText = "";
+      switch (newStatus) {
+        case "in_progress":
+          statusText = "est en cours de traitement";
+          break;
+        case "completed":
+          statusText = "a été traitée";
+          break;
+        case "rejected":
+          statusText = "a été rejetée";
+          break;
+        default:
+          statusText = "a été mise à jour";
+      }
+      
+      subject = `Mise à jour de votre question citoyenne: "${doleance.title}"`;
+      
+      htmlContent = `
+        <h1>Bonjour ${name},</h1>
+        <p>Votre question citoyenne "${doleance.title}" ${statusText}.</p>
+        ${doleance.response ? `<p><strong>Réponse:</strong> ${doleance.response}</p>` : ''}
+        <p>Vous pouvez suivre l'évolution de votre question sur notre plateforme.</p>
+        <p>Cordialement,<br>Le cabinet parlementaire</p>
+      `;
+      
+    } else if (type === "audience") {
+      const { data: audience, error: audienceError } = await supabase
+        .from("audiences")
+        .select("email, name, subject, response, meeting_date")
+        .eq("id", id)
+        .single();
+
+      if (audienceError) {
+        console.error("Erreur lors de la récupération de l'audience:", audienceError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: { message: "Erreur lors de la récupération de l'audience", details: audienceError } 
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      }
+
+      email = audience.email;
+      name = audience.name;
+
+      // Construction du sujet et du contenu selon le statut
+      let statusText = "";
+      let additionalInfo = "";
+      
+      switch (newStatus) {
+        case "approved":
+          statusText = "a été approuvée";
+          if (audience.meeting_date) {
+            const date = new Date(audience.meeting_date);
+            additionalInfo = `<p>Un rendez-vous a été programmé pour le ${date.toLocaleDateString('fr-FR')} à ${date.toLocaleTimeString('fr-FR')}.</p>`;
+          }
+          break;
+        case "rejected":
+          statusText = "a été rejetée";
+          break;
+        case "completed":
+          statusText = "a été marquée comme complétée";
+          break;
+        default:
+          statusText = "a été mise à jour";
+      }
+      
+      subject = `Mise à jour de votre demande d'audience: "${audience.subject}"`;
+      
+      htmlContent = `
+        <h1>Bonjour ${name},</h1>
+        <p>Votre demande d'audience "${audience.subject}" ${statusText}.</p>
+        ${additionalInfo}
+        ${audience.response ? `<p><strong>Message:</strong> ${audience.response}</p>` : ''}
+        <p>Cordialement,<br>Le cabinet parlementaire</p>
+      `;
+    } else {
+      console.error("Type de notification non reconnu:", type);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: { message: "Type de notification non reconnu" } 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
     }
 
+    // Essai d'envoi d'email
+    try {
+      // Pour éviter les problèmes avec Resend en mode test
+      // On utilise toujours l'adresse par défaut de Resend
+      const emailResponse = await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: [email],
+        subject: subject,
+        html: htmlContent
+      });
+
+      console.log("Email envoyé avec succès:", emailResponse);
+
+      return new Response(
+        JSON.stringify({ success: true, data: emailResponse }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    } catch (emailError) {
+      console.error("Erreur lors de l'envoi de l'email:", emailError);
+      
+      // Retourner une réponse avec le statut 200 mais avec l'erreur
+      // pour que l'UI puisse gérer correctement l'erreur
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          emailError: true,
+          error: emailError 
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+
+  } catch (error) {
+    console.error("Erreur générale dans la fonction send-notification:", error);
     return new Response(
-      JSON.stringify({ error: "Type de notification non supporté" }),
+      JSON.stringify({ 
+        success: false, 
+        error: { message: "Erreur interne", details: error } 
+      }),
       {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  } catch (error: any) {
-    console.error("Erreur dans la fonction send-notification:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
     );
   }

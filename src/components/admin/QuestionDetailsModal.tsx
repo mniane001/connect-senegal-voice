@@ -95,10 +95,15 @@ const QuestionDetailsModal = ({
         return { success: false, error };
       }
       
-      // Vérifier si la réponse a une erreur interne (depuis l'EdgeFunction)
+      // Vérification de la réponse
       if (data && data.error) {
         console.error("Erreur interne lors de l'envoi de l'email:", data.error);
-        return { success: false, error: data.error };
+        return { success: false, error: data.error, emailError: true };
+      }
+      
+      if (data && data.emailError) {
+        console.error("Erreur d'envoi d'email:", data.error);
+        return { success: false, error: data.error, emailError: true };
       }
       
       console.log("Notification envoyée avec succès:", data);
@@ -125,7 +130,6 @@ const QuestionDetailsModal = ({
       if (error) throw error;
       
       // Si le statut a changé, essayer d'envoyer une notification par email
-      // L'envoi d'email peut échouer, mais la mise à jour de la question est déjà réussie
       let emailResult = { success: true };
       if (status !== originalStatus) {
         emailResult = await sendNotificationEmail(question.id, status);
@@ -133,12 +137,20 @@ const QuestionDetailsModal = ({
       
       // Afficher un toast approprié en fonction du résultat
       if (status !== originalStatus && !emailResult.success) {
-        // L'email a échoué, mais nous informons quand même l'utilisateur que la question a été mise à jour
-        toast({
-          title: "Question mise à jour",
-          description: "La question a été mise à jour, mais l'envoi de l'email de notification n'a pas fonctionné. Le citoyen ne sera pas notifié.",
-          variant: "default",
-        });
+        // L'envoi d'email a échoué, mais la mise à jour a réussi
+        if (emailResult.emailError) {
+          toast({
+            title: "Question mise à jour",
+            description: "La question a été mise à jour, mais l'envoi de l'email de notification n'a pas fonctionné. Le citoyen ne sera pas notifié. Vérifiez votre configuration Resend.",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Question mise à jour",
+            description: "La question a été mise à jour, mais une erreur s'est produite lors de l'appel de la fonction de notification. Le citoyen ne sera pas notifié.",
+            variant: "default",
+          });
+        }
       } else {
         // Soit tout s'est bien passé, soit il n'y avait pas d'email à envoyer
         const emailSent = status !== originalStatus && emailResult.success;
