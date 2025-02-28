@@ -1,5 +1,6 @@
 
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
 
@@ -7,7 +8,11 @@ import './index.css'
 try {
   const container = document.getElementById("root");
   if (container) {
-    createRoot(container).render(<App />);
+    createRoot(container).render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    );
     console.log("Application successfully mounted");
   } else {
     console.error("Root element not found");
