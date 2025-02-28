@@ -10,7 +10,9 @@ import BackButton from "@/components/BackButton";
 import InitiativeDetailsModal from "@/components/admin/initiatives/InitiativeDetailsModal";
 import DeleteInitiativeModal from "@/components/admin/initiatives/DeleteInitiativeModal";
 import InitiativeFormModal from "@/components/admin/initiatives/InitiativeFormModal";
+import InitiativesStats from "@/components/admin/initiatives/InitiativesStats";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminInitiativesPage = () => {
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -19,6 +21,7 @@ const AdminInitiativesPage = () => {
   const [initiativeToDelete, setInitiativeToDelete] = useState<Initiative | null>(null);
   const [initiativeToEdit, setInitiativeToEdit] = useState<Initiative | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("list");
   const { toast } = useToast();
 
   const { data: initiatives, refetch } = useQuery({
@@ -72,21 +75,34 @@ const AdminInitiativesPage = () => {
 
         <h1 className="text-3xl font-bold mb-6">Gestion des initiatives parlementaires</h1>
         
-        <InitiativesFilterBar
-          typeFilter={typeFilter}
-          legislatureFilter={legislatureFilter}
-          onTypeChange={setTypeFilter}
-          onLegislatureChange={setLegislatureFilter}
-          onAddNew={() => setIsCreateModalOpen(true)}
-          addButtonLabel="Nouvelle initiative"
-        />
-        
-        <InitiativesList
-          initiatives={initiatives || []}
-          onView={(initiative) => setSelectedInitiative(initiative)}
-          onEdit={(initiative) => setInitiativeToEdit(initiative)}
-          onDelete={(initiative) => setInitiativeToDelete(initiative)}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="list">Liste des initiatives</TabsTrigger>
+            <TabsTrigger value="stats">Statistiques</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list">
+            <InitiativesFilterBar
+              typeFilter={typeFilter}
+              legislatureFilter={legislatureFilter}
+              onTypeChange={setTypeFilter}
+              onLegislatureChange={setLegislatureFilter}
+              onAddNew={() => setIsCreateModalOpen(true)}
+              addButtonLabel="Nouvelle initiative"
+            />
+            
+            <InitiativesList
+              initiatives={initiatives || []}
+              onView={(initiative) => setSelectedInitiative(initiative)}
+              onEdit={(initiative) => setInitiativeToEdit(initiative)}
+              onDelete={(initiative) => setInitiativeToDelete(initiative)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            {initiatives && <InitiativesStats initiatives={initiatives} />}
+          </TabsContent>
+        </Tabs>
         
         <InitiativeDetailsModal
           isOpen={!!selectedInitiative}

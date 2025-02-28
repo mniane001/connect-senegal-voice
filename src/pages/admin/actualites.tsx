@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
+import ActualiteStats from "@/components/admin/ActualiteStats";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
@@ -21,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Actualite {
   id: string;
@@ -35,6 +37,8 @@ interface Actualite {
 }
 
 const AdminActualitesPage = () => {
+  const [activeTab, setActiveTab] = useState("list");
+  
   const { data: actualites } = useQuery({
     queryKey: ["actualites"],
     queryFn: async () => {
@@ -59,62 +63,75 @@ const AdminActualitesPage = () => {
 
         <h1 className="text-3xl font-bold mb-8">Actualités et médias</h1>
 
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Liste des actualités</h2>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvelle actualité
-          </Button>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="list">Liste des actualités</TabsTrigger>
+            <TabsTrigger value="stats">Statistiques</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Liste des actualités</h2>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nouvelle actualité
+              </Button>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Actualités</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Titre</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Date de publication</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {actualites?.length ? (
-                  actualites.map((actualite) => (
-                    <TableRow key={actualite.id}>
-                      <TableCell className="font-medium">{actualite.title}</TableCell>
-                      <TableCell>{actualite.category}</TableCell>
-                      <TableCell>
-                        {actualite.published_at 
-                          ? new Date(actualite.published_at).toLocaleDateString() 
-                          : "Non publié"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            Éditer
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-500">
-                            Supprimer
-                          </Button>
-                        </div>
-                      </TableCell>
+            <Card>
+              <CardHeader>
+                <CardTitle>Actualités</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Titre</TableHead>
+                      <TableHead>Catégorie</TableHead>
+                      <TableHead>Date de publication</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
-                      Aucune actualité trouvée
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {actualites?.length ? (
+                      actualites.map((actualite) => (
+                        <TableRow key={actualite.id}>
+                          <TableCell className="font-medium">{actualite.title}</TableCell>
+                          <TableCell>{actualite.category}</TableCell>
+                          <TableCell>
+                            {actualite.published_at 
+                              ? new Date(actualite.published_at).toLocaleDateString() 
+                              : "Non publié"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm">
+                                Éditer
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-red-500">
+                                Supprimer
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-4">
+                          Aucune actualité trouvée
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            {actualites && <ActualiteStats actualites={actualites} />}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Footer />

@@ -7,7 +7,9 @@ import Footer from "@/components/Footer";
 import RencontreFilters from "@/components/admin/RencontreFilters";
 import RencontreList from "@/components/admin/RencontreList";
 import RencontreDetailsModal from "@/components/admin/RencontreDetailsModal";
+import RencontreStats from "@/components/admin/RencontreStats";
 import BackButton from "@/components/BackButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Rencontre {
   id: string;
@@ -24,6 +26,7 @@ interface Rencontre {
 const AdminAudiencesPage = () => {
   const [rencontreStatusFilter, setRencontreStatusFilter] = useState<string>("all");
   const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
+  const [activeTab, setActiveTab] = useState("list");
   const queryClient = useQueryClient();
 
   const { data: rencontres } = useQuery({
@@ -65,19 +68,32 @@ const AdminAudiencesPage = () => {
 
         <h1 className="text-3xl font-bold mb-8">Demandes d'audience</h1>
 
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Demandes de rencontre</h2>
-          <RencontreFilters
-            statusFilter={rencontreStatusFilter}
-            onStatusChange={setRencontreStatusFilter}
-          />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="list">Liste des demandes</TabsTrigger>
+            <TabsTrigger value="stats">Statistiques</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list">
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Demandes de rencontre</h2>
+              <RencontreFilters
+                statusFilter={rencontreStatusFilter}
+                onStatusChange={setRencontreStatusFilter}
+              />
 
-          <RencontreList 
-            rencontres={rencontres || []} 
-            onViewDetails={setSelectedRencontre}
-            onStatusUpdate={handleRencontreStatusUpdate}
-          />
-        </div>
+              <RencontreList 
+                rencontres={rencontres || []} 
+                onViewDetails={setSelectedRencontre}
+                onStatusUpdate={handleRencontreStatusUpdate}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            {rencontres && <RencontreStats rencontres={rencontres} />}
+          </TabsContent>
+        </Tabs>
 
         <RencontreDetailsModal
           rencontre={selectedRencontre}
