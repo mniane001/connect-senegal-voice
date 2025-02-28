@@ -103,8 +103,9 @@ const RencontreDetailsModal = ({
           type: "audience",
           id: rencontreId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com", // Envoyer également la réponse à cet email
-          response: response // Inclure la réponse pour décider si mniane6426@gmail.com doit être en copie
+          adminEmail: "mniane6426@gmail.com", // Email principal pour toutes les communications
+          replyToEmail: "mniane6426@gmail.com", // S'assurer que les réponses vont à cette adresse
+          response: response
         }
       });
       
