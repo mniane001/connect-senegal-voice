@@ -39,6 +39,14 @@ interface QuestionDetailsModalProps {
   onStatusUpdate: (questionId: string, newStatus: string) => void;
 }
 
+// Define an interface for the email notification response
+interface EmailNotificationResult {
+  success: boolean;
+  error?: any;
+  emailError?: boolean;
+  data?: any;
+}
+
 const QuestionDetailsModal = ({
   question,
   onClose,
@@ -78,7 +86,7 @@ const QuestionDetailsModal = ({
     setResponse(e.target.value);
   };
 
-  const sendNotificationEmail = async (questionId: string, newStatus: string) => {
+  const sendNotificationEmail = async (questionId: string, newStatus: string): Promise<EmailNotificationResult> => {
     try {
       console.log("Envoi de la notification par email pour la question:", questionId);
       
@@ -130,7 +138,7 @@ const QuestionDetailsModal = ({
       if (error) throw error;
       
       // Si le statut a changé, essayer d'envoyer une notification par email
-      let emailResult = { success: true };
+      let emailResult: EmailNotificationResult = { success: true };
       if (status !== originalStatus) {
         emailResult = await sendNotificationEmail(question.id, status);
       }
