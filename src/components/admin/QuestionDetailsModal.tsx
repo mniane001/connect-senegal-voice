@@ -87,8 +87,6 @@ const QuestionDetailsModal = ({
           type: "doleance",
           id: questionId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com", // Email principal pour toutes les communications
-          replyToEmail: "mniane6426@gmail.com", // S'assurer que les réponses vont à cette adresse
           response: response
         }
       });
@@ -150,7 +148,7 @@ const QuestionDetailsModal = ({
       } else {
         toast({
           title: "Réponse enregistrée",
-          description: "La réponse a été enregistrée, mais l'envoi de la notification a échoué. Veuillez vérifier les logs.",
+          description: "La réponse a été enregistrée, mais l'envoi de la notification a échoué.",
           variant: "destructive",
         });
         console.error("Détails de l'erreur d'envoi d'email:", emailError);

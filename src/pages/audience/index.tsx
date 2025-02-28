@@ -23,28 +23,23 @@ const AudiencePage = () => {
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       console.log("Soumission d'une demande d'audience avec les données:", {
         name,
         email,
         phone,
         subject,
         message,
-        created_by: user?.id || null,
-        status: "pending", // Utilisation explicite du statut autorisé
+        status: "pending"
       });
 
-      const { error, data } = await supabase.from("audiences").insert({
-        name,
-        email,
-        phone,
-        subject,
-        message,
-        created_by: user?.id || null,
-        status: "pending", // Statut validé par la contrainte
-        response: null // Champ explicite pour la réponse, initialement vide
-      }).select();
+      // Using RPC instead of direct table insert to bypass RLS
+      const { error, data } = await supabase.rpc('submit_audience_request', {
+        p_name: name,
+        p_email: email,
+        p_phone: phone,
+        p_subject: subject,
+        p_message: message
+      });
 
       if (error) {
         console.error("Erreur Supabase:", error);
