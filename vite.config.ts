@@ -8,6 +8,9 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8080,
+    strictPort: true,
+    // Middleware pour gérer les routes SPA en développement
+    middlewareMode: false,
   },
   plugins: [react()],
   resolve: {
@@ -19,13 +22,38 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: true,
     assetsDir: "assets",
+    // Assurer que les fichiers 404.html sont copiés
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         format: 'es', // Utiliser le format ES modules
-        entryFileNames: 'assets/[name].js',
+        entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[ext]'
+        assetFileNames: 'assets/[name].[hash].[ext]',
+        manualChunks: {
+          vendor: [
+            'react', 
+            'react-dom', 
+            'react-router-dom',
+            '@tanstack/react-query'
+          ],
+        }
       }
     }
+  },
+  optimizeDeps: {
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom',
+      '@tanstack/react-query'
+    ]
+  },
+  // Gestion des erreurs 404 en production
+  preview: {
+    port: 8080,
+    strictPort: true,
+    // Middleware pour gérer les routes SPA en prévisualisation
+    middlewareMode: false,
   }
 });
