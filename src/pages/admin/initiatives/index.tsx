@@ -1,33 +1,30 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InitiativesFilterBar from "@/components/admin/initiatives/InitiativesFilterBar";
 import InitiativesList, { Initiative } from "@/components/admin/initiatives/InitiativesList";
-import InitiativeFormModal from "@/components/admin/initiatives/InitiativeFormModal";
+import BackButton from "@/components/BackButton";
 import InitiativeDetailsModal from "@/components/admin/initiatives/InitiativeDetailsModal";
 import DeleteInitiativeModal from "@/components/admin/initiatives/DeleteInitiativeModal";
-import AdminRoute from "@/components/AdminRoute";
-import BackButton from "@/components/BackButton";
+import InitiativeFormModal from "@/components/admin/initiatives/InitiativeFormModal";
+import { useToast } from "@/components/ui/use-toast";
 
-const InitiativesAdminPage = () => {
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [legislatureFilter, setLegislatureFilter] = useState("all");
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+const AdminInitiativesPage = () => {
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [legislatureFilter, setLegislatureFilter] = useState<string>("all");
   const [selectedInitiative, setSelectedInitiative] = useState<Initiative | null>(null);
-  const queryClient = useQueryClient();
+  const [initiativeToDelete, setInitiativeToDelete] = useState<Initiative | null>(null);
+  const [initiativeToEdit, setInitiativeToEdit] = useState<Initiative | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { toast } = useToast();
 
-  const { data: initiatives, isLoading } = useQuery({
+  const { data: initiatives, refetch } = useQuery({
     queryKey: ["initiatives", typeFilter, legislatureFilter],
     queryFn: async () => {
-      let query = supabase
-        .from("initiatives")
-        .select("*")
-        .order("created_at", { ascending: false });
+      let query = supabase.from("initiatives").select("*");
 
       if (typeFilter !== "all") {
         query = query.eq("type", typeFilter);
@@ -37,95 +34,98 @@ const InitiativesAdminPage = () => {
         query = query.eq("legislature", legislatureFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data as Initiative[];
     },
   });
 
-  const handleCreateInitiative = () => {
-    setSelectedInitiative(null);
-    setIsFormModalOpen(true);
-  };
-
-  const handleEditInitiative = (initiative: Initiative) => {
-    setSelectedInitiative(initiative);
-    setIsFormModalOpen(true);
-  };
-
-  const handleViewInitiative = (initiative: Initiative) => {
-    setSelectedInitiative(initiative);
-    setIsDetailsModalOpen(true);
-  };
-
-  const handleDeleteInitiative = (initiative: Initiative) => {
-    setSelectedInitiative(initiative);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleSuccessAction = () => {
-    queryClient.invalidateQueries({ queryKey: ["initiatives"] });
+  const handleDeleteInitiative = async (id: string) => {
+    try {
+      const { error } = await supabase.from("initiatives").delete().eq("id", id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Initiative supprimée",
+        description: "L'initiative a été supprimée avec succès",
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de l'initiative",
+      });
+    }
   };
 
   return (
-    <AdminRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-4">
-            <BackButton to="/admin/dashboard" label="Retour au tableau de bord" />
-          </div>
-          
-          <h1 className="text-3xl font-bold mb-6">Gestion des initiatives parlementaires</h1>
-          
-          <InitiativesFilterBar
-            typeFilter={typeFilter}
-            legislatureFilter={legislatureFilter}
-            onTypeChange={setTypeFilter}
-            onLegislatureChange={setLegislatureFilter}
-            onAddNew={handleCreateInitiative}
-            addButtonLabel="Ajouter une initiative"
-          />
-          
-          {isLoading ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p>Chargement des initiatives...</p>
-            </div>
-          ) : (
-            <InitiativesList
-              initiatives={initiatives || []}
-              onView={handleViewInitiative}
-              onEdit={handleEditInitiative}
-              onDelete={handleDeleteInitiative}
-            />
-          )}
-          
-          <InitiativeFormModal
-            isOpen={isFormModalOpen}
-            onClose={() => setIsFormModalOpen(false)}
-            initiative={selectedInitiative || undefined}
-            onSuccess={handleSuccessAction}
-          />
-          
-          <InitiativeDetailsModal
-            isOpen={isDetailsModalOpen}
-            onClose={() => setIsDetailsModalOpen(false)}
-            initiative={selectedInitiative}
-          />
-          
-          <DeleteInitiativeModal
-            isOpen={isDeleteModalOpen}
-            onClose={() => setIsDeleteModalOpen(false)}
-            initiative={selectedInitiative}
-            onSuccess={handleSuccessAction}
-          />
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <BackButton to="/admin/dashboard" label="Retour au tableau de bord" />
         </div>
+
+        <h1 className="text-3xl font-bold mb-6">Gestion des initiatives parlementaires</h1>
         
-        <Footer />
+        <InitiativesFilterBar
+          typeFilter={typeFilter}
+          legislatureFilter={legislatureFilter}
+          onTypeChange={setTypeFilter}
+          onLegislatureChange={setLegislatureFilter}
+          onAddNew={() => setIsCreateModalOpen(true)}
+          addButtonLabel="Nouvelle initiative"
+        />
+        
+        <InitiativesList
+          initiatives={initiatives || []}
+          onView={(initiative) => setSelectedInitiative(initiative)}
+          onEdit={(initiative) => setInitiativeToEdit(initiative)}
+          onDelete={(initiative) => setInitiativeToDelete(initiative)}
+        />
+        
+        <InitiativeDetailsModal
+          initiative={selectedInitiative}
+          onClose={() => setSelectedInitiative(null)}
+        />
+        
+        <DeleteInitiativeModal
+          initiative={initiativeToDelete}
+          onClose={() => setInitiativeToDelete(null)}
+          onConfirm={() => {
+            if (initiativeToDelete) {
+              handleDeleteInitiative(initiativeToDelete.id);
+              setInitiativeToDelete(null);
+            }
+          }}
+        />
+        
+        <InitiativeFormModal
+          isOpen={!!initiativeToEdit}
+          onClose={() => setInitiativeToEdit(null)}
+          initiative={initiativeToEdit || undefined}
+          onSuccess={() => {
+            refetch();
+            setInitiativeToEdit(null);
+          }}
+        />
+        
+        <InitiativeFormModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            refetch();
+            setIsCreateModalOpen(false);
+          }}
+        />
       </div>
-    </AdminRoute>
+      <Footer />
+    </div>
   );
 };
 
-export default InitiativesAdminPage;
+export default AdminInitiativesPage;

@@ -1,87 +1,33 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardStats from "@/components/admin/DashboardStats";
-import QuestionFilters from "@/components/admin/QuestionFilters";
-import RencontreFilters from "@/components/admin/RencontreFilters";
-import QuestionList from "@/components/admin/QuestionList";
-import RencontreList from "@/components/admin/RencontreList";
-import QuestionDetailsModal from "@/components/admin/QuestionDetailsModal";
-import RencontreDetailsModal from "@/components/admin/RencontreDetailsModal";
-import CreateQuestionModal from "@/components/admin/CreateQuestionModal";
-import { Button } from "@/components/ui/button";
-import { Plus, FileText, Users, BookOpen, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Question {
-  id: string;
-  created_at: string;
-  name: string;
-  email: string;
-  category: string;
-  status: string;
-  title: string;
-  description: string;
-}
-
-interface Rencontre {
-  id: string;
-  created_at: string;
-  name: string;
-  email: string;
-  phone?: string;
-  subject: string;
-  message: string;
-  status: string;
-  meeting_date?: string;
-}
+import { FileText, Users, BookOpen, MessageSquare } from "lucide-react";
 
 const DashboardPage = () => {
-  const [questionStatusFilter, setQuestionStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [rencontreStatusFilter, setRencontreStatusFilter] = useState<string>("all");
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [selectedRencontre, setSelectedRencontre] = useState<Rencontre | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const queryClient = useQueryClient();
-
   const { data: questions } = useQuery({
-    queryKey: ["questions", questionStatusFilter, categoryFilter],
+    queryKey: ["dashboard_questions"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("doleances")
         .select("*");
-
-      if (questionStatusFilter !== "all") {
-        query = query.eq("status", questionStatusFilter);
-      }
-      if (categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-      return data as Question[];
+      return data;
     },
   });
 
   const { data: rencontres } = useQuery({
-    queryKey: ["rencontres", rencontreStatusFilter],
+    queryKey: ["dashboard_rencontres"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("audiences")
         .select("*");
-
-      if (rencontreStatusFilter !== "all") {
-        query = query.eq("status", rencontreStatusFilter);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-      return data as Rencontre[];
+      return data;
     },
   });
 
@@ -110,30 +56,7 @@ const DashboardPage = () => {
       
       return stats;
     },
-    enabled: false // Ne chargera pas automatiquement si la table n'existe pas encore
   });
-
-  const handleQuestionStatusUpdate = async (questionId: string, newStatus: string) => {
-    queryClient.setQueryData(["questions", questionStatusFilter, categoryFilter], (oldData: Question[] | undefined) => {
-      if (!oldData) return oldData;
-      return oldData.map(question => 
-        question.id === questionId 
-          ? { ...question, status: newStatus }
-          : question
-      );
-    });
-  };
-
-  const handleRencontreStatusUpdate = async (rencontreId: string, newStatus: string) => {
-    queryClient.setQueryData(["rencontres", rencontreStatusFilter], (oldData: Rencontre[] | undefined) => {
-      if (!oldData) return oldData;
-      return oldData.map(rencontre => 
-        rencontre.id === rencontreId 
-          ? { ...rencontre, status: newStatus }
-          : rencontre
-      );
-    });
-  };
 
   const stats = {
     totalQuestions: questions?.length || 0,
@@ -185,7 +108,7 @@ const DashboardPage = () => {
           </Link>
 
           <Link 
-            to="/admin/dashboard" 
+            to="/admin/questions" 
             className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
@@ -207,7 +130,7 @@ const DashboardPage = () => {
           </Link>
 
           <Link 
-            to="/admin/dashboard" 
+            to="/admin/audiences" 
             className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
@@ -229,7 +152,7 @@ const DashboardPage = () => {
           </Link>
 
           <Link 
-            to="/admin/dashboard" 
+            to="/admin/actualites" 
             className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center gap-4">
@@ -245,64 +168,6 @@ const DashboardPage = () => {
             </div>
           </Link>
         </div>
-
-        {/* Doléances et Audiences */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Questions écrites citoyennes</h2>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle question
-            </Button>
-          </div>
-          
-          <QuestionFilters
-            statusFilter={questionStatusFilter}
-            categoryFilter={categoryFilter}
-            onStatusChange={setQuestionStatusFilter}
-            onCategoryChange={setCategoryFilter}
-          />
-
-          <QuestionList 
-            questions={questions || []} 
-            onViewDetails={setSelectedQuestion}
-            onStatusUpdate={handleQuestionStatusUpdate}
-          />
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Demandes de rencontre</h2>
-          <RencontreFilters
-            statusFilter={rencontreStatusFilter}
-            onStatusChange={setRencontreStatusFilter}
-          />
-
-          <RencontreList 
-            rencontres={rencontres || []} 
-            onViewDetails={setSelectedRencontre}
-            onStatusUpdate={handleRencontreStatusUpdate}
-          />
-        </div>
-
-        <QuestionDetailsModal
-          question={selectedQuestion}
-          onClose={() => setSelectedQuestion(null)}
-          onStatusUpdate={handleQuestionStatusUpdate}
-        />
-
-        <RencontreDetailsModal
-          rencontre={selectedRencontre}
-          onClose={() => setSelectedRencontre(null)}
-          onStatusUpdate={handleRencontreStatusUpdate}
-        />
-
-        <CreateQuestionModal 
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onQuestionCreated={() => {
-            queryClient.invalidateQueries({ queryKey: ["questions"] });
-          }}
-        />
       </div>
 
       <Footer />
