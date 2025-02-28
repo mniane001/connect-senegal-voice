@@ -9,8 +9,6 @@ export default defineConfig({
     host: "::",
     port: 8080,
     strictPort: true,
-    // Middleware pour gérer les routes SPA en développement
-    middlewareMode: false,
   },
   plugins: [react()],
   resolve: {
@@ -53,7 +51,5 @@ export default defineConfig({
   preview: {
     port: 8080,
     strictPort: true,
-    // Middleware pour gérer les routes SPA en prévisualisation
-    middlewareMode: false,
   }
 });
