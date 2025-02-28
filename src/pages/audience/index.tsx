@@ -32,8 +32,8 @@ const AudiencePage = () => {
         status: "pending"
       });
 
-      // Using RPC instead of direct table insert to bypass RLS
-      const { error, data } = await supabase.rpc('submit_audience_request', {
+      // Using TypeScript type assertion to fix the type error
+      const { error, data } = await (supabase.rpc as any)('submit_audience_request', {
         p_name: name,
         p_email: email,
         p_phone: phone,

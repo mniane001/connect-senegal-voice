@@ -62,8 +62,8 @@ const DoleanceForm = () => {
         status: "submitted"
       });
 
-      // Using RPC instead of direct table insert to bypass RLS
-      const { error, data } = await supabase.rpc('submit_doleance', {
+      // Using TypeScript type assertion to fix the type error
+      const { error, data } = await (supabase.rpc as any)('submit_doleance', {
         p_name: formData.name,
         p_email: formData.email,
         p_title: formData.title,
