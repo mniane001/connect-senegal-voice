@@ -129,6 +129,51 @@ export type Database = {
         }
         Relationships: []
       }
+      initiatives: {
+        Row: {
+          created_at: string
+          description: string
+          document_url: string | null
+          id: string
+          legislature: string
+          ministry: string | null
+          published: boolean | null
+          response: string | null
+          status: string
+          title: string
+          type: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          document_url?: string | null
+          id?: string
+          legislature: string
+          ministry?: string | null
+          published?: boolean | null
+          response?: string | null
+          status?: string
+          title: string
+          type: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          document_url?: string | null
+          id?: string
+          legislature?: string
+          ministry?: string | null
+          published?: boolean | null
+          response?: string | null
+          status?: string
+          title?: string
+          type?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
