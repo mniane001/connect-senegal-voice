@@ -129,14 +129,14 @@ const QuestionDetailsModal = ({
         // La question a été mise à jour, mais l'email a échoué
         toast({
           title: "Question mise à jour",
-          description: "La question a été mise à jour, mais l'envoi de l'email de notification a échoué. Les utilisateurs ne seront pas notifiés par email pendant la phase de développement.",
+          description: "La question a été mise à jour, mais l'envoi de l'email de notification a échoué.",
           variant: "default",
         });
       } else {
         // Tout s'est bien passé
         toast({
           title: "Réponse enregistrée",
-          description: "La réponse a été enregistrée avec succès. Pendant la phase de développement, les emails sont envoyés à l'adresse de test uniquement.",
+          description: "La réponse a été enregistrée avec succès et une notification a été envoyée au citoyen.",
         });
       }
       
