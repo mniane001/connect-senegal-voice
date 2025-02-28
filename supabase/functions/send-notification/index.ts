@@ -186,7 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Envoi d'email en PRODUCTION à:", email);
       
       const emailResponse = await resend.emails.send({
-        from: "Cabinet Parlementaire <onboarding@resend.dev>",
+        from: "Cabinet Parlementaire <contact@gmsagna.com>",
         to: [email],
         subject: subject,
         html: htmlContent
