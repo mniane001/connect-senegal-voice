@@ -191,24 +191,40 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Envoi d'email à:", doleance.email);
       console.log("Contenu de l'email:", html);
 
-      // Envoyer l'email - En mode production, envoi à l'adresse réelle
-      const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <onboarding@resend.dev>",
-        to: [doleance.email],
-        subject: subject,
-        html: html,
-        reply_to: "mniane6426@gmail.com"
-      });
+      try {
+        // Envoyer l'email - En mode production, envoi à l'adresse réelle
+        const emailResponse = await resend.emails.send({
+          from: "Bureau du Député <onboarding@resend.dev>",
+          to: [doleance.email],
+          subject: subject,
+          html: html,
+          reply_to: "mniane6426@gmail.com"
+        });
 
-      console.log("Email envoyé:", emailResponse);
-
-      return new Response(JSON.stringify(emailResponse), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      });
+        console.log("Email envoyé:", emailResponse);
+        
+        return new Response(JSON.stringify(emailResponse), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        });
+      } catch (emailError: any) {
+        console.error("Erreur lors de l'envoi de l'email:", emailError);
+        
+        // Retourner l'erreur mais avec un statut 200 pour que le frontend puisse traiter l'erreur
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: emailError.message || "Erreur lors de l'envoi de l'email"
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     }
 
     return new Response(

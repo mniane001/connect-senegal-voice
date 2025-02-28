@@ -95,6 +95,12 @@ const QuestionDetailsModal = ({
         return { success: false, error };
       }
       
+      // Vérifier si la réponse a une erreur interne (depuis l'EdgeFunction)
+      if (data && data.error) {
+        console.error("Erreur interne lors de l'envoi de l'email:", data.error);
+        return { success: false, error: data.error };
+      }
+      
       console.log("Notification envoyée avec succès:", data);
       return { success: true, data };
     } catch (error) {
