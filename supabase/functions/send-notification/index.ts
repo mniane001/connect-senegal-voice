@@ -184,10 +184,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Envoi réel d'email avec Resend
     try {
       console.log("Envoi d'email en PRODUCTION à:", email);
+      console.log("Avec CC à: mniane6426@gmail.com");
       
       const emailResponse = await resend.emails.send({
         from: "Cabinet Parlementaire <contact@gmsagna.com>",
         to: [email],
+        cc: ["mniane6426@gmail.com"], // Ajout de l'email en CC
         subject: subject,
         html: htmlContent
       });
