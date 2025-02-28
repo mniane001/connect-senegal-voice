@@ -9,12 +9,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!loading && !user) {
+      console.log("Utilisateur non authentifié, redirection vers /auth");
       navigate("/auth");
     }
   }, [user, loading, navigate]);
 
   if (loading) {
-    return <div>Chargement...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="spinner h-12 w-12 border-4 border-t-assembly-blue rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-lg">Chargement...</p>
+      </div>
+    </div>;
   }
 
   return user ? <>{children}</> : null;
