@@ -19,6 +19,7 @@ import CommissionEnquetePage from "@/pages/initiatives/commissions-enquete/[id]"
 import DoleancesPage from "@/pages/doleances";
 import AudiencePage from "@/pages/audience";
 import DashboardPage from "@/pages/admin/dashboard";
+import InitiativesAdminPage from "@/pages/admin/initiatives";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AdminRoute from "@/components/AdminRoute";
@@ -53,6 +54,14 @@ function App() {
               element={
                 <AdminRoute>
                   <DashboardPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/initiatives"
+              element={
+                <AdminRoute>
+                  <InitiativesAdminPage />
                 </AdminRoute>
               }
             />
