@@ -3,7 +3,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.32.0";
 
-const resendApiKey = Deno.env.get("RESEND_API_KEY");
+// Utiliser le nom correct du secret "gmsagna key" au lieu de "RESEND_API_KEY"
+const resendApiKey = Deno.env.get("gmsagna key");
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -59,8 +60,10 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Clé API Resend utilisée:", resendApiKey ? "Configurée" : "Non configurée");
+    
     const { type, id, newStatus }: NotificationRequest = await req.json();
-    console.log(`Notification requested: ${type} ${id} with status ${newStatus}`);
+    console.log(`Notification demandée: ${type} ${id} avec statut ${newStatus}`);
 
     if (type === "audience") {
       // Récupérer les détails de la demande d'audience
@@ -114,9 +117,12 @@ const handler = async (req: Request): Promise<Response> => {
         <p>Cordialement,<br>Le bureau du député</p>
       `;
 
+      console.log("Envoi d'email à:", audience.email);
+      console.log("Contenu de l'email:", html);
+
       // Envoyer l'email
       const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <onboarding@resend.dev>",
+        from: "Bureau du Député <info@gmsagna.com>",
         to: [audience.email],
         subject: subject,
         html: html,
@@ -181,9 +187,12 @@ const handler = async (req: Request): Promise<Response> => {
         <p>Cordialement,<br>Le bureau du député</p>
       `;
 
+      console.log("Envoi d'email à:", doleance.email);
+      console.log("Contenu de l'email:", html);
+
       // Envoyer l'email
       const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <onboarding@resend.dev>",
+        from: "Bureau du Député <info@gmsagna.com>",
         to: [doleance.email],
         subject: subject,
         html: html,
