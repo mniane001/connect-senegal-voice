@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Card,
@@ -42,7 +41,6 @@ const CATEGORIES = [
 ];
 
 const QuestionEcritePage = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -61,6 +59,7 @@ const QuestionEcritePage = () => {
 
     try {
       const finalCategory = formData.category === "autre" ? formData.title : formData.category;
+      const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
         .from("doleances")
@@ -71,7 +70,7 @@ const QuestionEcritePage = () => {
             title: formData.title,
             category: finalCategory,
             description: formData.description,
-            created_by: user?.id || "anonymous",
+            created_by: user?.id || null,
             status: "submitted",
           },
         ]);

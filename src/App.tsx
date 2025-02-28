@@ -21,7 +21,6 @@ import AudiencePage from "@/pages/audience";
 import DashboardPage from "@/pages/admin/dashboard";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
 // Create a client
@@ -47,22 +46,8 @@ function App() {
             <Route path="/initiatives/propositions-loi/:id" element={<PropositionLoiPage />} />
             <Route path="/initiatives/commissions-enquete" element={<CommissionsEnquetePage />} />
             <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnquetePage />} />
-            <Route 
-              path="/doleances" 
-              element={
-                <ProtectedRoute>
-                  <DoleancesPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/audience" 
-              element={
-                <ProtectedRoute>
-                  <AudiencePage />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/doleances" element={<DoleancesPage />} />
+            <Route path="/audience" element={<AudiencePage />} />
             <Route
               path="/admin/dashboard"
               element={

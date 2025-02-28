@@ -14,6 +14,13 @@ const Navbar = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
+        // Vérifier si l'email de l'utilisateur est un email d'administrateur
+        const adminEmails = ['mniane6426@gmail.com', 'nianemouhamed100@gmail.com'];
+        if (adminEmails.includes(user.email || '')) {
+          setIsAdmin(true);
+          return;
+        }
+        
         try {
           const { data, error } = await supabase
             .rpc('is_admin', { user_id: user.id });
@@ -98,16 +105,9 @@ const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <Button
-                variant="outline"
-                className="border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
-                asChild
-              >
-                <Link to="/auth">
-                  <UserCircle className="mr-2 h-5 w-5" />
-                  Se connecter
-                </Link>
-              </Button>
+              <Link to="/auth" className="text-assembly-blue hover:underline text-sm">
+                Administration
+              </Link>
             )}
           </div>
 
@@ -167,16 +167,9 @@ const Navbar = () => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  className="w-full border-assembly-blue text-assembly-blue hover:bg-assembly-blue/10"
-                  asChild
-                >
-                  <Link to="/auth">
-                    <UserCircle className="mr-2 h-5 w-5" />
-                    Se connecter
-                  </Link>
-                </Button>
+                <Link to="/auth" className="block px-3 py-2 text-assembly-blue hover:underline text-sm">
+                  Administration
+                </Link>
               )}
             </div>
           </div>

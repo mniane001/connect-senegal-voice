@@ -1,5 +1,5 @@
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,32 +17,21 @@ const AudiencePage = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Veuillez vous connecter pour demander une audience",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase.from("audiences").insert({
         name,
         email,
         phone,
         subject,
         message,
-        created_by: user.id,
+        created_by: user?.id || null,
       });
 
       if (error) throw error;
