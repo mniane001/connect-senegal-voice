@@ -55,7 +55,7 @@ const Index = () => {
           <div className="max-w-7xl mx-auto px-4 text-center text-white">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Guy Marius Sagna</h1>
             <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">
-              Député à l'Assemblée nationale du Sénégal, engagé pour la justice sociale et le développement équitable.
+              Africain du Sénégal, révolutionnaire anti-impérialiste, panafricain et internationaliste. Député à l'assemblée nationale du Sénégal (14e et 15e législature) et au parlement de la CEDEAO (6e législature).
             </p>
             <Button asChild variant="outline" className="bg-white text-assembly-blue hover:bg-gray-100 font-medium">
               <Link to="/biographie">En savoir plus</Link>
@@ -70,7 +70,7 @@ const Index = () => {
               <div className="md:w-1/2">
                 <div className="flex justify-center">
                   <img
-                    src="https://i.ibb.co/kg2j04HQ/photo-guy.jpg"
+                    src="/lovable-uploads/a9091fa1-b761-40c8-adc2-fc4a2dbaab50.png"
                     alt="Guy Marius Sagna"
                     className="rounded-lg shadow-md border-4 border-white max-w-full h-auto object-cover"
                     style={{ width: '400px', height: '500px', objectPosition: 'center top' }}
