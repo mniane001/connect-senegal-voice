@@ -34,20 +34,33 @@ serve(async (req) => {
     console.log("Données de la requête:", requestData);
     
     // Récupérer les détails de la doléance ou audience
-    const { data: itemData, error: itemError } = await fetch(
-      `${Deno.env.get("SUPABASE_URL")}/rest/v1/${type === "doleance" ? "doleances" : "audiences"}?id=eq.${id}&select=*`,
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const tableName = type === "doleance" ? "doleances" : "audiences";
+    
+    console.log(`Tentative de récupération depuis la table ${tableName} pour l'ID: ${id}`);
+    
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=*`,
       {
         headers: {
           "Content-Type": "application/json",
-          "apikey": Deno.env.get("SUPABASE_ANON_KEY") || "",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`
         }
       }
-    ).then(res => res.json());
+    );
     
-    if (itemError || !itemData || itemData.length === 0) {
-      console.error(`Erreur lors de la récupération de ${type}:`, itemError);
-      throw new Error(`Erreur lors de la récupération de ${type}: ${itemError?.message || "Données non trouvées"}`);
+    if (!res.ok) {
+      console.error(`Erreur HTTP lors de la récupération depuis ${tableName}:`, res.status, res.statusText);
+      throw new Error(`Erreur HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const itemData = await res.json();
+    
+    if (!itemData || itemData.length === 0) {
+      console.error(`Aucune donnée trouvée dans ${tableName} pour l'ID: ${id}`);
+      throw new Error(`Erreur lors de la récupération de ${type}: Données non trouvées pour l'ID ${id}`);
     }
     
     const item = itemData[0];
@@ -104,7 +117,7 @@ serve(async (req) => {
     }
     
     // Configurer l'adresse de réponse (Reply-To)
-    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser l'adresse mniane6426@gmail.com par défaut
+    const userReplyTo = replyToEmail || "mniane6426@gmail.com"; // Utiliser mniane6426@gmail.com par défaut
     
     // Envoyer l'email à l'utilisateur
     const emailOptions = {
@@ -112,11 +125,12 @@ serve(async (req) => {
       to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,
-      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à l'adresse spécifiée
+      reply_to: userReplyTo, // S'assurer que toutes les réponses vont à mniane6426@gmail.com
     };
     
-    // Si une adresse admin est fournie et qu'il y a une réponse, envoyer une copie à l'admin
-    if (adminEmail && response) {
+    // Si une adresse admin est fournie, envoyer une copie à l'admin
+    if (adminEmail) {
+      // Toujours envoyer une copie à mniane6426@gmail.com
       emailOptions.cc = [adminEmail];
     }
     
