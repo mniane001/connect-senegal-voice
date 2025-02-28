@@ -6,6 +6,7 @@ import { MessageSquare, Video } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BackButton from "@/components/BackButton";
 
 const QuestionsOralesPage = () => {
   const [selectedTab, setSelectedTab] = useState("15");
@@ -88,6 +89,10 @@ const QuestionsOralesPage = () => {
 
       {/* Main Content */}
       <div className="container-custom py-16">
+        <div className="mb-6">
+          <BackButton to="/initiatives" />
+        </div>
+        
         <Tabs defaultValue="15" onValueChange={setSelectedTab} className="mb-8">
           <div className="flex justify-center mb-6">
             <TabsList>
