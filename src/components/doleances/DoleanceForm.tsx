@@ -50,10 +50,23 @@ const DoleanceForm = () => {
     setLoading(true);
 
     try {
+      // Déterminer la catégorie finale
       const finalCategory = formData.category === "autre" ? formData.title : formData.category;
+      
+      // Récupérer l'utilisateur connecté (si disponible)
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { error } = await supabase
+      console.log("Soumission de la doléance avec les données:", {
+        name: formData.name,
+        email: formData.email,
+        title: formData.title,
+        category: finalCategory,
+        description: formData.description,
+        created_by: user?.id || null,
+        status: "submitted", // Utilisation explicite du statut autorisé
+      });
+
+      const { error, data } = await supabase
         .from("doleances")
         .insert([
           {
@@ -63,11 +76,17 @@ const DoleanceForm = () => {
             category: finalCategory,
             description: formData.description,
             created_by: user?.id || null,
-            status: "submitted",
+            status: "submitted", // Statut validé par la contrainte
           },
-        ]);
+        ])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+
+      console.log("Doléance soumise avec succès:", data);
 
       toast({
         title: "Question soumise avec succès",

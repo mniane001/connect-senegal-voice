@@ -25,16 +25,32 @@ const AudiencePage = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase.from("audiences").insert({
+      console.log("Soumission d'une demande d'audience avec les données:", {
         name,
         email,
         phone,
         subject,
         message,
         created_by: user?.id || null,
+        status: "pending", // Utilisation explicite du statut autorisé
       });
 
-      if (error) throw error;
+      const { error, data } = await supabase.from("audiences").insert({
+        name,
+        email,
+        phone,
+        subject,
+        message,
+        created_by: user?.id || null,
+        status: "pending", // Statut validé par la contrainte
+      }).select();
+
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+
+      console.log("Demande d'audience soumise avec succès:", data);
 
       toast({
         title: "Demande d'audience envoyée",
@@ -48,9 +64,10 @@ const AudiencePage = () => {
       setSubject("");
       setMessage("");
     } catch (error: any) {
+      console.error("Erreur lors de la soumission:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Une erreur est survenue lors de la soumission de votre demande",
         variant: "destructive",
       });
     } finally {
