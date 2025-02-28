@@ -1,16 +1,22 @@
-import { useParams } from "react-router-dom";
+
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { MessageSquare, Calendar, User, Video } from "lucide-react";
 import Footer from "@/components/Footer";
+import BackButton from "@/components/BackButton";
 
 const QuestionOraleDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="container-custom py-12 mt-16">
+        <div className="mb-4">
+          <BackButton to="/initiatives/questions-orales" />
+        </div>
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-assembly-blue p-6 text-white">
             <h1 className="text-2xl md:text-3xl font-bold">

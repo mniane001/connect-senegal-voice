@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BackButton from "@/components/BackButton";
 
 const AuthPage = () => {
   const [email, setEmail] = useState("");
@@ -59,6 +61,10 @@ const AuthPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex flex-col justify-center py-12 sm:px-6 lg:px-8 pt-24">
+        <div className="mb-4 mx-auto w-full max-w-md px-4">
+          <BackButton />
+        </div>
+        
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
             {isSignUp ? "Créer un compte" : "Se connecter"}

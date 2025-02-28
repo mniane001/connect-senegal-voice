@@ -10,6 +10,7 @@ import InitiativeFormModal from "@/components/admin/initiatives/InitiativeFormMo
 import InitiativeDetailsModal from "@/components/admin/initiatives/InitiativeDetailsModal";
 import DeleteInitiativeModal from "@/components/admin/initiatives/DeleteInitiativeModal";
 import AdminRoute from "@/components/AdminRoute";
+import BackButton from "@/components/BackButton";
 
 const InitiativesAdminPage = () => {
   const [typeFilter, setTypeFilter] = useState("all");
@@ -72,6 +73,10 @@ const InitiativesAdminPage = () => {
         <Navbar />
         
         <div className="container mx-auto px-4 py-8">
+          <div className="mb-4">
+            <BackButton to="/admin/dashboard" label="Retour au tableau de bord" />
+          </div>
+          
           <h1 className="text-3xl font-bold mb-6">Gestion des initiatives parlementaires</h1>
           
           <InitiativesFilterBar

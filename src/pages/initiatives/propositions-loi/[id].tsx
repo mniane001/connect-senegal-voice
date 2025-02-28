@@ -1,7 +1,9 @@
+
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BookOpen, Calendar, User, FileCheck } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const PropositionLoiDetailPage = () => {
   const { id } = useParams();
@@ -11,6 +13,9 @@ const PropositionLoiDetailPage = () => {
       <Navbar />
       
       <div className="container-custom py-12 mt-16">
+        <div className="mb-4">
+          <BackButton to="/initiatives/propositions-loi" />
+        </div>
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-assembly-blue p-6 text-white">
             <h1 className="text-2xl md:text-3xl font-bold">
