@@ -39,14 +39,6 @@ interface QuestionDetailsModalProps {
   onStatusUpdate: (questionId: string, newStatus: string) => void;
 }
 
-// Define an interface for the email notification response
-interface EmailNotificationResult {
-  success: boolean;
-  error?: any;
-  emailError?: boolean;
-  data?: any;
-}
-
 const QuestionDetailsModal = ({
   question,
   onClose,
@@ -86,7 +78,7 @@ const QuestionDetailsModal = ({
     setResponse(e.target.value);
   };
 
-  const sendNotificationEmail = async (questionId: string, newStatus: string): Promise<EmailNotificationResult> => {
+  const sendNotificationEmail = async (questionId: string, newStatus: string) => {
     try {
       console.log("Envoi de la notification par email pour la question:", questionId);
       
@@ -103,19 +95,17 @@ const QuestionDetailsModal = ({
         return { success: false, error };
       }
       
-      // Vérification de la réponse
-      if (data && data.error) {
-        console.error("Erreur interne lors de l'envoi de l'email:", data.error);
-        return { success: false, error: data.error, emailError: true };
-      }
+      console.log("Réponse de la fonction de notification:", data);
       
-      if (data && data.emailError) {
-        console.error("Erreur d'envoi d'email:", data.error);
-        return { success: false, error: data.error, emailError: true };
+      if (data && data.error) {
+        console.error("Erreur lors de l'envoi de l'email:", data.error);
+        // Nous retournons quand même success: true car la mise à jour a réussi
+        // même si l'email n'a pas pu être envoyé
+        return { success: true, emailSent: false, error: data.error };
       }
       
       console.log("Notification envoyée avec succès:", data);
-      return { success: true, data };
+      return { success: true, emailSent: true, data };
     } catch (error) {
       console.error("Erreur d'invocation de la fonction send-notification:", error);
       return { success: false, error };
@@ -138,37 +128,19 @@ const QuestionDetailsModal = ({
       if (error) throw error;
       
       // Si le statut a changé, essayer d'envoyer une notification par email
-      let emailResult: EmailNotificationResult = { success: true };
       if (status !== originalStatus) {
-        emailResult = await sendNotificationEmail(question.id, status);
+        const emailResult = await sendNotificationEmail(question.id, status);
+        
+        if (!emailResult.success) {
+          console.error("Erreur lors de l'envoi de la notification:", emailResult.error);
+          // Nous continuons car la mise à jour a réussi même si la notification a échoué
+        }
       }
       
-      // Afficher un toast approprié en fonction du résultat
-      if (status !== originalStatus && !emailResult.success) {
-        // L'envoi d'email a échoué, mais la mise à jour a réussi
-        if (emailResult.emailError) {
-          toast({
-            title: "Question mise à jour",
-            description: "La question a été mise à jour, mais l'envoi de l'email de notification n'a pas fonctionné. Le citoyen ne sera pas notifié. Vérifiez votre configuration Resend.",
-            variant: "default",
-          });
-        } else {
-          toast({
-            title: "Question mise à jour",
-            description: "La question a été mise à jour, mais une erreur s'est produite lors de l'appel de la fonction de notification. Le citoyen ne sera pas notifié.",
-            variant: "default",
-          });
-        }
-      } else {
-        // Soit tout s'est bien passé, soit il n'y avait pas d'email à envoyer
-        const emailSent = status !== originalStatus && emailResult.success;
-        toast({
-          title: "Réponse enregistrée",
-          description: emailSent 
-            ? "La réponse a été enregistrée avec succès et une notification a été envoyée au citoyen." 
-            : "La réponse a été enregistrée avec succès.",
-        });
-      }
+      toast({
+        title: "Réponse enregistrée",
+        description: "La réponse a été enregistrée avec succès.",
+      });
       
       onStatusUpdate(question.id, status);
       onClose();
