@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Envoyer l'email
       const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <mniane6426@gmail.com>",
+        from: "Bureau du Député <contact@gmsagna.com>",
         to: [audience.email],
         subject: subject,
         html: html,
@@ -192,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Envoyer l'email
       const emailResponse = await resend.emails.send({
-        from: "Bureau du Député <mniane6426@gmail.com>",
+        from: "Bureau du Député <contact@gmsagna.com>",
         to: [doleance.email],
         subject: subject,
         html: html,
