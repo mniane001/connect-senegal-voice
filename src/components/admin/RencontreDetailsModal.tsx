@@ -1,22 +1,34 @@
 
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Rencontre {
   id: string;
@@ -28,6 +40,7 @@ interface Rencontre {
   message: string;
   status: string;
   meeting_date?: string;
+  response?: string;
 }
 
 interface RencontreDetailsModalProps {
@@ -36,98 +49,176 @@ interface RencontreDetailsModalProps {
   onStatusUpdate: (rencontreId: string, newStatus: string) => void;
 }
 
-const RencontreDetailsModal = ({ rencontre, onClose, onStatusUpdate }: RencontreDetailsModalProps) => {
-  const [status, setStatus] = useState(rencontre?.status || "pending");
+const RencontreDetailsModal = ({
+  rencontre,
+  onClose,
+  onStatusUpdate,
+}: RencontreDetailsModalProps) => {
   const { toast } = useToast();
+  const [status, setStatus] = useState<string>("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [response, setResponse] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (rencontre) {
-      setStatus(rencontre.status);
+      setStatus(rencontre.status || "pending");
+      setResponse(rencontre.response || "");
+      if (rencontre.meeting_date) {
+        setDate(new Date(rencontre.meeting_date));
+      } else {
+        setDate(undefined);
+      }
     }
   }, [rencontre]);
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!rencontre) return;
+  if (!rencontre) return null;
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+  };
+
+  const handleResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setResponse(e.target.value);
+  };
+
+  const handleSubmit = async () => {
     try {
+      setIsUpdating(true);
+      
       const { error } = await supabase
         .from("audiences")
-        .update({ status: newStatus })
+        .update({
+          status,
+          meeting_date: date ? date.toISOString() : null,
+          response,
+        })
         .eq("id", rencontre.id);
 
       if (error) throw error;
-
-      setStatus(newStatus);
-      onStatusUpdate(rencontre.id, newStatus);
       
       toast({
-        title: "Statut mis à jour",
-        description: "Le statut de la demande a été mis à jour avec succès.",
+        title: "Demande mise à jour",
+        description: "La demande d'audience a été mise à jour avec succès.",
       });
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du statut:", error);
+      
+      onStatusUpdate(rencontre.id, status);
+      onClose();
+    } catch (error: any) {
+      console.error("Error updating audience request:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour du statut.",
+        description: error.message,
+        variant: "destructive",
       });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   return (
     <Dialog open={!!rencontre} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex justify-between items-start mb-4">
-            <DialogTitle>Demande de rencontre : {rencontre?.subject}</DialogTitle>
-            <div className="min-w-[200px]">
-              <Select value={status} onValueChange={handleStatusChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Changer le statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="approved">Approuvé</SelectItem>
-                    <SelectItem value="rejected">Refusé</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogDescription className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div>
-                <p className="font-semibold">Demandé par</p>
-                <p>{rencontre?.name}</p>
-              </div>
-              <div>
-                <p className="font-semibold">Email</p>
-                <p>{rencontre?.email}</p>
-              </div>
-              {rencontre?.phone && (
-                <div>
-                  <p className="font-semibold">Téléphone</p>
-                  <p>{rencontre.phone}</p>
-                </div>
-              )}
-              <div>
-                <p className="font-semibold">Date de la demande</p>
-                <p>{rencontre?.created_at && new Date(rencontre.created_at).toLocaleDateString()}</p>
-              </div>
-              {rencontre?.meeting_date && (
-                <div>
-                  <p className="font-semibold">Date de rencontre proposée</p>
-                  <p>{new Date(rencontre.meeting_date).toLocaleDateString()}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="font-semibold">Message</p>
-              <p className="mt-2 whitespace-pre-wrap">{rencontre?.message}</p>
-            </div>
+          <DialogTitle>Détails de la demande d'audience</DialogTitle>
+          <DialogDescription>
+            Consultez les détails et mettez à jour la demande d'audience
           </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-6 my-4">
+          <div>
+            <h3 className="text-lg font-medium">{rencontre.subject}</h3>
+            <p className="text-sm text-muted-foreground">
+              Soumis le {formatDate(rencontre.created_at)} par {rencontre.name}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Message</h4>
+            <Alert>
+              <AlertDescription>
+                {rencontre.message}
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Coordonnées</h4>
+            <p><strong>Email:</strong> {rencontre.email}</p>
+            {rencontre.phone && <p><strong>Téléphone:</strong> {rencontre.phone}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Statut</h4>
+            <Select value={status} onValueChange={handleStatusChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="approved">Approuvé</SelectItem>
+                <SelectItem value="rejected">Rejeté</SelectItem>
+                <SelectItem value="completed">Complété</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(status === "approved" || status === "completed") && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Date de rendez-vous</h4>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP", { locale: fr }) : "Sélectionner une date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    locale={fr}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Réponse</h4>
+            <Textarea
+              placeholder="Écrivez votre réponse ici..."
+              value={response}
+              onChange={handleResponseChange}
+              rows={6}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit} disabled={isUpdating}>
+            {isUpdating ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

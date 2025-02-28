@@ -14,6 +14,7 @@ interface DashboardStatsProps {
   rencontresEnAttente: number;
   totalInitiatives: number;
   totalActualites: number;
+  actualitesPubliees: number;
 }
 
 const DashboardStats = ({ 
@@ -22,7 +23,8 @@ const DashboardStats = ({
   questionsEnAttente, 
   rencontresEnAttente,
   totalInitiatives,
-  totalActualites
+  totalActualites,
+  actualitesPubliees
 }: DashboardStatsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
@@ -81,7 +83,7 @@ const DashboardStats = ({
         <CardContent>
           <div className="text-2xl font-bold">{totalActualites}</div>
           <p className="text-xs text-muted-foreground">
-            Publications
+            {actualitesPubliees} publiées
           </p>
         </CardContent>
       </Card>

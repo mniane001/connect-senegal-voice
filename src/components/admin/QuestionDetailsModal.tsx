@@ -1,22 +1,25 @@
 
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Question {
   id: string;
@@ -27,6 +30,7 @@ interface Question {
   status: string;
   title: string;
   description: string;
+  response?: string;
 }
 
 interface QuestionDetailsModalProps {
@@ -35,115 +39,148 @@ interface QuestionDetailsModalProps {
   onStatusUpdate: (questionId: string, newStatus: string) => void;
 }
 
-const CATEGORIES = {
-  education: "Éducation",
-  sante: "Santé",
-  infrastructure: "Infrastructure",
-  economie: "Économie",
-  environnement: "Environnement",
-  agriculture: "Agriculture",
-  securite: "Sécurité",
-  justice: "Justice",
-  culture: "Culture",
-  sport: "Sport",
-  transport: "Transport",
-  emploi: "Emploi"
-};
-
-const QuestionDetailsModal = ({ question, onClose, onStatusUpdate }: QuestionDetailsModalProps) => {
-  const [status, setStatus] = useState(question?.status || "submitted");
+const QuestionDetailsModal = ({
+  question,
+  onClose,
+  onStatusUpdate,
+}: QuestionDetailsModalProps) => {
   const { toast } = useToast();
+  const [status, setStatus] = useState<string>("");
+  const [response, setResponse] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => {
+  // Update status and response when question changes
+  useState(() => {
     if (question) {
       setStatus(question.status);
+      setResponse(question.response || "");
     }
-  }, [question]);
+  });
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!question) return;
+  if (!question) return null;
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+  };
+
+  const handleResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setResponse(e.target.value);
+  };
+
+  const handleSubmit = async () => {
     try {
-      console.log("Mise à jour du statut:", { questionId: question.id, newStatus });
+      setIsUpdating(true);
       
       const { error } = await supabase
         .from("doleances")
-        .update({ status: newStatus })
-        .eq("id", question.id)
-        .select();
+        .update({
+          status,
+          response,
+        })
+        .eq("id", question.id);
 
-      if (error) {
-        console.error("Erreur Supabase:", error);
-        throw error;
-      }
-
-      setStatus(newStatus);
-      onStatusUpdate(question.id, newStatus);
+      if (error) throw error;
       
       toast({
-        title: "Statut mis à jour",
-        description: "Le statut de la question a été mis à jour avec succès.",
+        title: "Réponse enregistrée",
+        description: "La réponse a été enregistrée avec succès.",
       });
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du statut:", error);
+      
+      onStatusUpdate(question.id, status);
+      onClose();
+    } catch (error: any) {
+      console.error("Error updating question:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour du statut.",
+        description: error.message,
+        variant: "destructive",
       });
+    } finally {
+      setIsUpdating(false);
     }
-  };
-
-  const getCategoryDisplay = (category: string) => {
-    return CATEGORIES[category as keyof typeof CATEGORIES] || category;
   };
 
   return (
     <Dialog open={!!question} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex justify-between items-start mb-4">
-            <DialogTitle>{question?.title}</DialogTitle>
-            <div className="min-w-[200px]">
-              <Select value={status} onValueChange={handleStatusChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Changer le statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="submitted">Soumis</SelectItem>
-                    <SelectItem value="in_progress">En cours</SelectItem>
-                    <SelectItem value="completed">Complété</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogDescription className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div>
-                <p className="font-semibold">Soumis par</p>
-                <p>{question?.name}</p>
-              </div>
-              <div>
-                <p className="font-semibold">Email</p>
-                <p>{question?.email}</p>
-              </div>
-              <div>
-                <p className="font-semibold">Catégorie</p>
-                <p>{question?.category && getCategoryDisplay(question.category)}</p>
-              </div>
-              <div>
-                <p className="font-semibold">Date de soumission</p>
-                <p>{question?.created_at && new Date(question.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-            <div>
-              <p className="font-semibold">Description</p>
-              <p className="mt-2 whitespace-pre-wrap">{question?.description}</p>
-            </div>
+          <DialogTitle>Détails de la question</DialogTitle>
+          <DialogDescription>
+            Consultez les détails et répondez à la question
           </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-6 my-4">
+          <div>
+            <h3 className="text-lg font-medium">{question.title}</h3>
+            <p className="text-sm text-muted-foreground">
+              Soumis le {formatDate(question.created_at)} par {question.name}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Catégorie</h4>
+            <p>{question.category}</p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Description</h4>
+            <Alert>
+              <AlertDescription>
+                {question.description}
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Email du citoyen</h4>
+            <p>{question.email}</p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Statut</h4>
+            <Select value={status} onValueChange={handleStatusChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="submitted">Soumis</SelectItem>
+                <SelectItem value="in_progress">En cours</SelectItem>
+                <SelectItem value="completed">Complété</SelectItem>
+                <SelectItem value="rejected">Rejeté</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Réponse</h4>
+            <Textarea
+              placeholder="Écrivez votre réponse ici..."
+              value={response}
+              onChange={handleResponseChange}
+              rows={6}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit} disabled={isUpdating}>
+            {isUpdating ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

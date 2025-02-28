@@ -11,6 +11,7 @@ interface ActualiteCardProps {
   image_url: string | null;
   category: string;
   published_at: string | null;
+  published?: boolean;
 }
 
 const ActualiteCard = ({
@@ -20,7 +21,8 @@ const ActualiteCard = ({
   content,
   image_url,
   category,
-  published_at
+  published_at,
+  published
 }: ActualiteCardProps) => {
   const formatDate = (date: string | null) => {
     if (!date) return "";
@@ -30,6 +32,9 @@ const ActualiteCard = ({
       day: "numeric",
     });
   };
+
+  // Don't render if not published
+  if (published === false) return null;
 
   return (
     <div className="card-official bg-white rounded-xl shadow-lg h-full flex flex-col overflow-hidden hover:shadow-xl transition-shadow">

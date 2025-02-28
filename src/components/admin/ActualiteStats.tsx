@@ -8,6 +8,7 @@ interface Actualite {
   category: string;
   published_at: string | null;
   created_at: string;
+  published: boolean;
 }
 
 interface ActualiteStatsProps {
@@ -60,8 +61,8 @@ const ActualiteStats = ({ actualites }: ActualiteStatsProps) => {
 
   // Statistiques de publication
   const publicationCount = {
-    published: actualites.filter(a => a.published_at).length,
-    draft: actualites.filter(a => !a.published_at).length,
+    published: actualites.filter(a => a.published).length,
+    draft: actualites.filter(a => !a.published).length,
   };
 
   const publicationData = [
