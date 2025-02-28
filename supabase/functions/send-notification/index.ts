@@ -181,39 +181,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Essai d'envoi d'email
+    // Envoi réel d'email avec Resend
     try {
-      console.log("Tentative d'envoi d'email à:", email);
+      console.log("Envoi d'email à:", email);
       
-      // ⚠️ En mode développement, on court-circuite l'envoi réel d'email
-      // et on simule une réponse réussie
-      // Ceci est pour contourner la limitation de Resend en mode test
-      
-      console.log("⚠️ MODE DÉVELOPPEMENT: Simulation d'envoi d'email réussi");
-      console.log("Email qui aurait été envoyé à:", email);
-      console.log("Sujet:", subject);
-      console.log("Contenu:", htmlContent);
-      
-      // Simuler une réponse réussie
-      const mockResponse = {
-        id: "simulated_email_" + Date.now(),
-        from: "onboarding@resend.dev",
-        to: [email],
-        created_at: new Date().toISOString()
-      };
-
-      return new Response(
-        JSON.stringify({ success: true, data: mockResponse }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
-      
-      // Version originale avec envoi réel d'email (commentée)
-      /*
       const emailResponse = await resend.emails.send({
-        from: "onboarding@resend.dev",
+        from: "Cabinet Parlementaire <onboarding@resend.dev>",
         to: [email],
         subject: subject,
         html: htmlContent
@@ -228,17 +201,13 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
-      */
     } catch (emailError) {
       console.error("Erreur lors de l'envoi de l'email:", emailError);
       
-      // Retourner une réponse avec le statut 200 mais avec l'erreur
-      // Pour éviter les problèmes de validation de Resend, on simule
-      // un succès pour permettre au reste du processus de continuer
+      // Retourner une réponse avec l'erreur
       return new Response(
         JSON.stringify({ 
-          success: true,
-          emailSent: false,
+          success: false,
           error: emailError 
         }),
         {

@@ -99,9 +99,7 @@ const QuestionDetailsModal = ({
       
       if (data && data.error) {
         console.error("Erreur lors de l'envoi de l'email:", data.error);
-        // Nous retournons quand même success: true car la mise à jour a réussi
-        // même si l'email n'a pas pu être envoyé
-        return { success: true, emailSent: false, error: data.error };
+        return { success: false, emailSent: false, error: data.error };
       }
       
       console.log("Notification envoyée avec succès:", data);
@@ -128,19 +126,32 @@ const QuestionDetailsModal = ({
       if (error) throw error;
       
       // Si le statut a changé, essayer d'envoyer une notification par email
+      let emailSuccess = true;
+      let emailError = null;
+      
       if (status !== originalStatus) {
         const emailResult = await sendNotificationEmail(question.id, status);
         
         if (!emailResult.success) {
           console.error("Erreur lors de l'envoi de la notification:", emailResult.error);
-          // Nous continuons car la mise à jour a réussi même si la notification a échoué
+          emailSuccess = false;
+          emailError = emailResult.error;
         }
       }
       
-      toast({
-        title: "Réponse enregistrée",
-        description: "La réponse a été enregistrée avec succès.",
-      });
+      if (emailSuccess) {
+        toast({
+          title: "Réponse enregistrée",
+          description: "La réponse a été enregistrée et une notification a été envoyée.",
+        });
+      } else {
+        toast({
+          title: "Réponse enregistrée",
+          description: "La réponse a été enregistrée, mais l'envoi de la notification a échoué. Veuillez vérifier les logs.",
+          variant: "destructive",
+        });
+        console.error("Détails de l'erreur d'envoi d'email:", emailError);
+      }
       
       onStatusUpdate(question.id, status);
       onClose();
