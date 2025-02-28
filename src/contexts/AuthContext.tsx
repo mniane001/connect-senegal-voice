@@ -21,17 +21,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Récupérer la session initiale
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        console.log("Getting initial auth session...");
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session:", session ? "Found" : "Not found");
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Error getting initial session:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Écouter les changements de session
+    getInitialSession();
+
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state change detected, event:", _event);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -42,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ session, user, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

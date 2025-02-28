@@ -13,45 +13,51 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
+        console.log("No user found, redirecting to auth page");
         navigate("/auth");
         return;
       }
 
       try {
-        // Vérifier d'abord si l'email est dans la liste des administrateurs
+        // Check if the email is in the admin list
         const adminEmails = ['mniane6426@gmail.com', 'nianemouhamed100@gmail.com'];
+        
+        console.log("Current user email:", user.email);
+        
         if (user.email && adminEmails.includes(user.email)) {
-          console.log("Admin email confirmé:", user.email);
+          console.log("Admin email confirmed:", user.email);
           setIsAdmin(true);
           setCheckingAdmin(false);
           return;
         }
 
-        // Si ce n'est pas un email admin, vérifier avec la fonction RPC
-        console.log("Vérification du statut d'administrateur pour:", user.id);
+        // If not an admin email, check with RPC function
+        console.log("Checking admin status for user ID:", user.id);
         const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
 
         if (error) {
-          console.error('Erreur de vérification admin:', error);
+          console.error('Admin verification error:', error);
+          setCheckingAdmin(false);
           navigate("/");
           return;
         }
 
-        console.log("Résultat de la vérification admin:", data);
+        console.log("Admin verification result:", data);
 
         if (!data) {
-          console.log("L'utilisateur n'est pas administrateur");
+          console.log("User is not an administrator");
+          setCheckingAdmin(false);
           navigate("/");
           return;
         }
 
-        console.log("Utilisateur confirmé comme administrateur");
+        console.log("User confirmed as administrator");
         setIsAdmin(true);
-      } catch (error) {
-        console.error('Erreur lors de la vérification admin:', error);
-        navigate("/");
-      } finally {
         setCheckingAdmin(false);
+      } catch (error) {
+        console.error('Error during admin verification:', error);
+        setCheckingAdmin(false);
+        navigate("/");
       }
     };
 

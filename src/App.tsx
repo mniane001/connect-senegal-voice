@@ -23,6 +23,8 @@ import AdminActualitesPage from "./pages/admin/actualites";
 import AuthPage from "./pages/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFoundPage from "./pages/NotFound";
+import ActualitesPage from "./pages/actualites";
+import ActualiteDetailPage from "./pages/actualites/[id]";
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
         <Route path="/initiatives/commissions-enquete/:id" element={<CommissionEnqueteDetailPage />} />
         <Route path="/doleances" element={<QuestionEcritePage />} />
         <Route path="/audience" element={<AudiencePage />} />
+        <Route path="/actualites" element={<ActualitesPage />} />
+        <Route path="/actualites/:id" element={<ActualiteDetailPage />} />
 
         <Route path="/auth" element={<AuthPage />} />
 
