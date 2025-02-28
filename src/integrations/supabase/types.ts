@@ -51,7 +51,7 @@ export type Database = {
       audiences: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           email: string
           id: string
           meeting_date: string | null
@@ -63,7 +63,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           email: string
           id?: string
           meeting_date?: string | null
@@ -75,7 +75,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           email?: string
           id?: string
           meeting_date?: string | null
@@ -91,7 +91,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string
           email: string
           id: string
@@ -104,7 +104,7 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description: string
           email: string
           id?: string
@@ -117,7 +117,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string
           email?: string
           id?: string
