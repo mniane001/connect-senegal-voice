@@ -21,26 +21,38 @@ export const sendNotificationEmail = async (params: {
   status: string;
   response: string;
   meetingDate?: string | null;
+  replyTo?: string;
+  fromName?: string;
 }) => {
   try {
-    const { type, recipientEmail, recipientName, subject, status, response, meetingDate } = params;
+    const { 
+      type, 
+      recipientEmail, 
+      recipientName, 
+      subject, 
+      status, 
+      response, 
+      meetingDate,
+      replyTo = 'nianemouhamed001@gmail.com',
+      fromName = 'Guy Marius SAGNA'
+    } = params;
     
     // Sélection du template en fonction du type
     const templateId = type === 'doleance' ? TEMPLATE_ID_DOLEANCE : TEMPLATE_ID_AUDIENCE;
     
     // Préparation des paramètres pour EmailJS
     const templateParams = {
-      to_email: recipientEmail,
-      to_name: recipientName,
-      subject,
-      status: getStatusLabel(status),
-      response,
+      to_email: recipientEmail,         // Email du destinataire (l'utilisateur)
+      to_name: recipientName,           // Nom du destinataire (l'utilisateur)
+      subject,                          // Objet de l'email
+      status: getStatusLabel(status),   // Statut de la demande
+      response,                         // Réponse à la demande
       meeting_date: meetingDate ? formatDate(new Date(meetingDate)) : '',
       has_meeting: meetingDate ? 'true' : 'false',
-      deputy_name: 'Guy Marius SAGNA',
+      deputy_name: fromName,            // Nom du député (apparaîtra comme expéditeur)
       deputy_title: 'Député à l\'Assemblée Nationale du Sénégal',
-      email: 'nianemouhamed001@gmail.com', // Email for reply-to
-      name: recipientName // Name for the from field
+      email: replyTo,                   // Email pour la fonction "répondre à"
+      name: fromName                    // Nom pour le champ "De"
     };
     
     console.log("Envoi d'email avec EmailJS:", templateParams);
@@ -60,27 +72,35 @@ export const sendSubmissionConfirmationEmail = async (params: {
   type: 'doleance' | 'audience';
   recipientEmail: string;
   recipientName: string;
+  replyTo?: string;
+  fromName?: string;
 }) => {
   try {
-    const { type, recipientEmail, recipientName } = params;
+    const { 
+      type, 
+      recipientEmail, 
+      recipientName,
+      replyTo = 'nianemouhamed001@gmail.com',
+      fromName = 'Guy Marius SAGNA'
+    } = params;
     
     // Sélection du template en fonction du type
     const templateId = type === 'doleance' ? TEMPLATE_ID_DOLEANCE : TEMPLATE_ID_AUDIENCE;
     
     // Préparation des paramètres pour EmailJS
     const templateParams = {
-      to_email: recipientEmail,
-      to_name: recipientName,
+      to_email: recipientEmail,        // Email de l'utilisateur qui a soumis le formulaire
+      to_name: recipientName,          // Nom de l'utilisateur
       subject: type === 'doleance' ? 'Confirmation de votre doléance' : 'Confirmation de votre demande d\'audience',
       status: type === 'doleance' ? 'Soumise' : 'En attente',
       response: type === 'doleance' 
         ? 'Nous avons bien reçu votre doléance et l\'examinerons dans les plus brefs délais.'
         : 'Nous avons bien reçu votre demande d\'audience et l\'examinerons dans les plus brefs délais.',
       has_meeting: 'false',
-      deputy_name: 'Guy Marius SAGNA',
+      deputy_name: fromName,          // Nom du député (apparaîtra comme expéditeur)
       deputy_title: 'Député à l\'Assemblée Nationale du Sénégal',
-      email: 'nianemouhamed001@gmail.com', // Email for reply-to
-      name: recipientName // Name for the from field
+      email: replyTo,                 // Email pour la fonction "répondre à"
+      name: fromName                  // Nom pour le champ "De"
     };
     
     console.log("Envoi d'email de confirmation avec EmailJS:", templateParams);

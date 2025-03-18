@@ -88,9 +88,11 @@ const QuestionDetailsModal = ({
           type: "doleance",
           id: questionId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com",
-          replyToEmail: "mniane6426@gmail.com",
-          response: response
+          adminEmail: "nianemouhamed001@gmail.com",
+          replyToEmail: "nianemouhamed001@gmail.com",
+          response: response,
+          userEmail: question.email,
+          userName: question.name
         }
       });
       
@@ -113,7 +115,9 @@ const QuestionDetailsModal = ({
         recipientName: question.name,
         subject: `Mise à jour de votre doléance - ${question.title}`,
         status: newStatus,
-        response: response
+        response: response,
+        replyTo: "nianemouhamed001@gmail.com",
+        fromName: "Guy Marius SAGNA"
       });
       
       if (!emailResult.success) {

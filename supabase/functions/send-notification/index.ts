@@ -68,15 +68,15 @@ serve(async (req) => {
     
     // Préparer les détails pour l'envoi d'email
     const emailDetails = {
-      recipientEmail: userEmail || item.email,
-      recipientName: userName || item.name,
+      recipientEmail: userEmail || item.email, // L'email du demandeur (utilisateur)
+      recipientName: userName || item.name,    // Le nom du demandeur (utilisateur)
       subject: subject || (type === "doleance" ? `Mise à jour de votre doléance - ${item.title || ""}` : `Mise à jour de votre demande d'audience`),
       type,
       status: newStatus,
       response: response || "",
       meetingDate: item.meeting_date || null,
-      replyTo: replyToEmail || "nianemouhamed001@gmail.com",
-      fromName: "Guy Marius SAGNA"
+      replyTo: adminEmail || replyToEmail || "nianemouhamed001@gmail.com", // L'email de l'administrateur pour les réponses
+      fromName: "Guy Marius SAGNA"             // Le nom qui apparaîtra comme expéditeur
     };
     
     console.log("Détails d'email préparés:", emailDetails);

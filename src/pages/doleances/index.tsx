@@ -10,8 +10,10 @@ export const sendDoleanceConfirmationEmail = async (name: string, email: string)
   try {
     const result = await sendSubmissionConfirmationEmail({
       type: 'doleance',
-      recipientEmail: email,
-      recipientName: name
+      recipientEmail: email, // Email de l'utilisateur qui a soumis le formulaire
+      recipientName: name,   // Nom de l'utilisateur
+      replyTo: "nianemouhamed001@gmail.com",
+      fromName: "Guy Marius SAGNA"
     });
     
     if (!result.success) {

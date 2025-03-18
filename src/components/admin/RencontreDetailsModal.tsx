@@ -104,9 +104,11 @@ const RencontreDetailsModal = ({
           type: "audience",
           id: rencontreId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com",
-          replyToEmail: "mniane6426@gmail.com",
-          response: response
+          adminEmail: "nianemouhamed001@gmail.com",
+          replyToEmail: "nianemouhamed001@gmail.com",
+          response: response,
+          userEmail: rencontre.email,
+          userName: rencontre.name
         }
       });
       
@@ -130,7 +132,9 @@ const RencontreDetailsModal = ({
         subject: `Mise à jour de votre demande d'audience`,
         status: newStatus,
         response: response,
-        meetingDate: date ? date.toISOString() : null
+        meetingDate: date ? date.toISOString() : null,
+        replyTo: "nianemouhamed001@gmail.com",
+        fromName: "Guy Marius SAGNA"
       });
       
       if (!emailResult.success) {

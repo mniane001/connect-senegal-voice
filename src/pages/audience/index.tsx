@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,8 +56,10 @@ const AudiencePage = () => {
       // Envoi d'un email de confirmation au demandeur
       const emailResult = await sendSubmissionConfirmationEmail({
         type: 'audience',
-        recipientEmail: email,
-        recipientName: name
+        recipientEmail: email,  // Email de l'utilisateur qui a soumis le formulaire
+        recipientName: name,    // Nom de l'utilisateur
+        replyTo: "nianemouhamed001@gmail.com",
+        fromName: "Guy Marius SAGNA"
       });
 
       if (!emailResult.success) {
