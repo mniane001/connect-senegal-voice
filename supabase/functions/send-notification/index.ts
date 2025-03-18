@@ -74,7 +74,9 @@ serve(async (req) => {
       type,
       status: newStatus,
       response: response || "",
-      meetingDate: item.meeting_date || null
+      meetingDate: item.meeting_date || null,
+      replyTo: replyToEmail || "nianemouhamed001@gmail.com",
+      fromName: "Guy Marius SAGNA"
     };
     
     console.log("Détails d'email préparés:", emailDetails);

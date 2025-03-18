@@ -38,7 +38,9 @@ export const sendNotificationEmail = async (params: {
       meeting_date: meetingDate ? formatDate(new Date(meetingDate)) : '',
       has_meeting: meetingDate ? 'true' : 'false',
       deputy_name: 'Guy Marius SAGNA',
-      deputy_title: 'Député à l\'Assemblée Nationale du Sénégal'
+      deputy_title: 'Député à l\'Assemblée Nationale du Sénégal',
+      email: 'nianemouhamed001@gmail.com', // Email for reply-to
+      name: recipientName // Name for the from field
     };
     
     console.log("Envoi d'email avec EmailJS:", templateParams);
@@ -76,7 +78,9 @@ export const sendSubmissionConfirmationEmail = async (params: {
         : 'Nous avons bien reçu votre demande d\'audience et l\'examinerons dans les plus brefs délais.',
       has_meeting: 'false',
       deputy_name: 'Guy Marius SAGNA',
-      deputy_title: 'Député à l\'Assemblée Nationale du Sénégal'
+      deputy_title: 'Député à l\'Assemblée Nationale du Sénégal',
+      email: 'nianemouhamed001@gmail.com', // Email for reply-to
+      name: recipientName // Name for the from field
     };
     
     console.log("Envoi d'email de confirmation avec EmailJS:", templateParams);
