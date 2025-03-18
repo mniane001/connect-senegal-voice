@@ -66,12 +66,11 @@ serve(async (req) => {
     const item = itemData[0];
     console.log(`${type} récupéré:`, item);
     
-    // Dans cette version, la fonction Edge ne fait que valider les données
-    // et préparer une réponse pour indiquer que l'email doit être envoyé par EmailJS côté client
+    // Préparer les détails pour l'envoi d'email
     const emailDetails = {
       recipientEmail: userEmail || item.email,
       recipientName: userName || item.name,
-      subject: subject || (type === "doleance" ? `Mise à jour de votre doléance - ${item.title}` : `Mise à jour de votre demande d'audience`),
+      subject: subject || (type === "doleance" ? `Mise à jour de votre doléance - ${item.title || ""}` : `Mise à jour de votre demande d'audience`),
       type,
       status: newStatus,
       response: response || "",

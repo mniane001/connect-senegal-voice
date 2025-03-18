@@ -53,6 +53,44 @@ export const sendNotificationEmail = async (params: {
   }
 };
 
+// Fonction pour envoyer un email de confirmation lors de la soumission
+export const sendSubmissionConfirmationEmail = async (params: {
+  type: 'doleance' | 'audience';
+  recipientEmail: string;
+  recipientName: string;
+}) => {
+  try {
+    const { type, recipientEmail, recipientName } = params;
+    
+    // Sélection du template en fonction du type
+    const templateId = type === 'doleance' ? TEMPLATE_ID_DOLEANCE : TEMPLATE_ID_AUDIENCE;
+    
+    // Préparation des paramètres pour EmailJS
+    const templateParams = {
+      to_email: recipientEmail,
+      to_name: recipientName,
+      subject: type === 'doleance' ? 'Confirmation de votre doléance' : 'Confirmation de votre demande d\'audience',
+      status: type === 'doleance' ? 'Soumise' : 'En attente',
+      response: type === 'doleance' 
+        ? 'Nous avons bien reçu votre doléance et l\'examinerons dans les plus brefs délais.'
+        : 'Nous avons bien reçu votre demande d\'audience et l\'examinerons dans les plus brefs délais.',
+      has_meeting: 'false',
+      deputy_name: 'Guy Marius SAGNA',
+      deputy_title: 'Député à l\'Assemblée Nationale du Sénégal'
+    };
+    
+    console.log("Envoi d'email de confirmation avec EmailJS:", templateParams);
+    
+    // Envoi de l'email via EmailJS
+    const result = await emailjs.send(SERVICE_ID, templateId, templateParams);
+    console.log('Email de confirmation envoyé avec succès:', result);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email de confirmation:', error);
+    return { success: false, error };
+  }
+};
+
 // Fonction utilitaire pour obtenir le libellé du statut
 const getStatusLabel = (status: string) => {
   switch (status) {

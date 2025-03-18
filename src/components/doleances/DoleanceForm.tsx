@@ -1,197 +1,217 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// List of categories for doleances
-export const CATEGORIES = [
-  { value: "education", label: "Éducation" },
-  { value: "sante", label: "Santé" },
-  { value: "infrastructure", label: "Infrastructure" },
-  { value: "economie", label: "Économie" },
-  { value: "environnement", label: "Environnement" },
-  { value: "agriculture", label: "Agriculture" },
-  { value: "securite", label: "Sécurité" },
-  { value: "justice", label: "Justice" },
-  { value: "culture", label: "Culture" },
-  { value: "sport", label: "Sport" },
-  { value: "transport", label: "Transport" },
-  { value: "emploi", label: "Emploi" },
-  { value: "autre", label: "Autre" }
-];
+// Définition du schéma de validation
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
+  email: z.string().email({ message: "Veuillez entrer une adresse email valide" }),
+  title: z.string().min(5, { message: "Le titre doit contenir au moins 5 caractères" }),
+  category: z.string({ required_error: "Veuillez sélectionner une catégorie" }),
+  description: z.string().min(10, { message: "La description doit contenir au moins 10 caractères" }),
+});
 
-const DoleanceForm = () => {
-  const navigate = useNavigate();
+type FormValues = z.infer<typeof formSchema>;
+
+interface DoleanceFormProps {
+  onSubmitSuccess?: (name: string, email: string) => Promise<boolean>;
+}
+
+const DoleanceForm = ({ onSubmitSuccess }: DoleanceFormProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    title: "",
-    category: "",
-    customCategory: "",
-    description: "",
+
+  // Initialisation du formulaire avec react-hook-form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      title: "",
+      category: "",
+      description: "",
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Gestion de la soumission du formulaire
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
 
     try {
-      // Déterminer la catégorie finale
-      const finalCategory = formData.category === "autre" ? formData.title : formData.category;
-      
-      // Récupérer l'utilisateur connecté (si disponible)
+      // Récupérer l'utilisateur actuel (si connecté)
       const { data: { user } } = await supabase.auth.getUser();
 
-      console.log("Soumission de la doléance avec les données:", {
-        name: formData.name,
-        email: formData.email,
-        title: formData.title,
-        category: finalCategory,
-        description: formData.description,
+      // Insérer la doléance dans la base de données
+      const { error } = await supabase.from("doleances").insert({
+        name: data.name,
+        email: data.email,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        status: "submitted",
         created_by: user?.id || null,
-        status: "submitted", // Utilisation explicite du statut autorisé
       });
 
-      const { error, data } = await supabase
-        .from("doleances")
-        .insert([
-          {
-            name: formData.name,
-            email: formData.email,
-            title: formData.title,
-            category: finalCategory,
-            description: formData.description,
-            created_by: user?.id || null,
-            status: "submitted", // Statut validé par la contrainte
-          },
-        ])
-        .select();
+      if (error) throw error;
 
-      if (error) {
-        console.error("Erreur Supabase:", error);
-        throw error;
+      // Envoyer un email de confirmation si la fonction est fournie
+      if (onSubmitSuccess) {
+        const emailSent = await onSubmitSuccess(data.name, data.email);
+        if (emailSent) {
+          console.log("Email de confirmation envoyé avec succès");
+        } else {
+          console.warn("L'email de confirmation n'a pas pu être envoyé");
+        }
       }
 
-      console.log("Doléance soumise avec succès:", data);
-
+      // Afficher un message de succès
       toast({
-        title: "Question soumise avec succès",
-        description: "Nous examinerons votre question dans les plus brefs délais.",
+        title: "Doléance soumise avec succès",
+        description: "Nous avons bien reçu votre question et vous répondrons dans les meilleurs délais.",
       });
 
-      navigate("/initiatives/questions-ecrites");
-    } catch (error) {
+      // Réinitialiser le formulaire
+      form.reset();
+    } catch (error: any) {
       console.error("Erreur lors de la soumission:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de la soumission de votre question.",
+        description: error.message || "Une erreur est survenue lors de la soumission de votre doléance",
+        variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Nom complet
-          </label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom complet</FormLabel>
+                <FormControl>
+                  <Input placeholder="Entrez votre nom complet" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="Entrez votre email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required
-          />
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-          Catégorie
-        </label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) => setFormData({ ...formData, category: value })}
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionnez une catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {CATEGORIES.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
-                  {category.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          Titre de la question
-        </label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Titre de la question</FormLabel>
+              <FormControl>
+                <Input placeholder="Entrez le titre de votre question" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {formData.category === "autre" && (
-          <p className="text-sm text-muted-foreground mt-1">
-            Note : Pour une catégorie "Autre", le titre de votre question sera utilisé comme catégorie.
-          </p>
-        )}
-      </div>
 
-      <div className="space-y-2">
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description détaillée
-        </label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={6}
-          required
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Catégorie</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez une catégorie" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="education">Éducation</SelectItem>
+                  <SelectItem value="sante">Santé</SelectItem>
+                  <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                  <SelectItem value="economie">Économie</SelectItem>
+                  <SelectItem value="environnement">Environnement</SelectItem>
+                  <SelectItem value="agriculture">Agriculture</SelectItem>
+                  <SelectItem value="securite">Sécurité</SelectItem>
+                  <SelectItem value="justice">Justice</SelectItem>
+                  <SelectItem value="culture">Culture</SelectItem>
+                  <SelectItem value="sport">Sport</SelectItem>
+                  <SelectItem value="transport">Transport</SelectItem>
+                  <SelectItem value="emploi">Emploi</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Envoi en cours..." : "Soumettre la question"}
-      </Button>
-    </form>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description détaillée</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Décrivez en détail votre question ou préoccupation..."
+                  className="min-h-32"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Soumission en cours..." : "Soumettre ma question"}
+        </Button>
+      </form>
+    </Form>
   );
 };
 

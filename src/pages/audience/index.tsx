@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Mic } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { sendSubmissionConfirmationEmail } from "@/services/emailService";
 
 const AudiencePage = () => {
   const [name, setName] = useState("");
@@ -53,9 +54,22 @@ const AudiencePage = () => {
 
       console.log("Demande d'audience soumise avec succès:", data);
 
+      // Envoi d'un email de confirmation au demandeur
+      const emailResult = await sendSubmissionConfirmationEmail({
+        type: 'audience',
+        recipientEmail: email,
+        recipientName: name
+      });
+
+      if (!emailResult.success) {
+        console.warn("L'email de confirmation n'a pas pu être envoyé:", emailResult.error);
+      } else {
+        console.log("Email de confirmation envoyé avec succès");
+      }
+
       toast({
         title: "Demande d'audience envoyée",
-        description: "Nous vous contacterons pour confirmer la date et l'heure",
+        description: "Nous vous contacterons pour confirmer la date et l'heure. Un email de confirmation vous a été envoyé.",
       });
 
       // Reset form
