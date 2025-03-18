@@ -1,11 +1,11 @@
 
 import emailjs from 'emailjs-com';
 
-// Constantes pour les paramètres EmailJS (à configurer dans l'interface utilisateur)
-const SERVICE_ID = 'default_service'; // Remplacer par votre Service ID
-const TEMPLATE_ID_DOLEANCE = 'template_doleance'; // Remplacer par votre Template ID pour les doléances
-const TEMPLATE_ID_AUDIENCE = 'template_audience'; // Remplacer par votre Template ID pour les audiences
-const USER_ID = 'user_id'; // Remplacer par votre User ID EmailJS
+// EmailJS configuration parameters
+const SERVICE_ID = 'service_n7yy92c'; // User's Service ID
+const TEMPLATE_ID_DOLEANCE = 'template_55xfx7h'; // User's Template ID for doléances
+const TEMPLATE_ID_AUDIENCE = 'template_55xfx7h'; // Same template ID for audiences for now
+const USER_ID = 'EwjtJ5wam0wkLZkdW'; // User's Public Key
 
 // Initialisation d'EmailJS
 export const initEmailService = () => {
