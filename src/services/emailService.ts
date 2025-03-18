@@ -3,8 +3,8 @@ import emailjs from 'emailjs-com';
 
 // EmailJS configuration parameters
 const SERVICE_ID = 'service_n7yy92c'; // User's Service ID
-const TEMPLATE_ID_DOLEANCE = 'template_55xfx7h'; // User's Template ID for doléances
-const TEMPLATE_ID_AUDIENCE = 'template_55xfx7h'; // Same template ID for audiences for now
+const TEMPLATE_ID_DOLEANCE = 'template_l5g0jx7'; // User's Template ID for doléances
+const TEMPLATE_ID_AUDIENCE = 'template_aal1pev'; // User's Template ID for audiences
 const USER_ID = 'EwjtJ5wam0wkLZkdW'; // User's Public Key
 
 // Initialisation d'EmailJS
