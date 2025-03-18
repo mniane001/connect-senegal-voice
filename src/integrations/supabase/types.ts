@@ -222,16 +222,21 @@ export type Database = {
         }
         Returns: string
       }
-      submit_doleance: {
-        Args: {
-          p_name: string
-          p_email: string
-          p_title: string
-          p_category: string
-          p_description: string
-        }
-        Returns: string
-      }
+      submit_doleance:
+        | {
+            Args: Record<PropertyKey, never>
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_name: string
+              p_email: string
+              p_title: string
+              p_category: string
+              p_description: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       user_role: "admin" | "user"

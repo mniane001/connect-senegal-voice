@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { sendNotificationEmail } from "@/services/emailService";
 
 interface Question {
   id: string;
@@ -78,17 +78,18 @@ const QuestionDetailsModal = ({
     setResponse(e.target.value);
   };
 
-  const sendNotificationEmail = async (questionId: string, newStatus: string) => {
+  const notifyUserViaEmail = async (questionId: string, newStatus: string) => {
     try {
-      console.log("Envoi de la notification par email pour la question:", questionId);
+      console.log("Préparation de la notification par email pour la question:", questionId);
       
+      // Validation des données via la fonction Edge
       const { data, error } = await supabase.functions.invoke("send-notification", {
         body: {
           type: "doleance",
           id: questionId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com", // Email principal pour toutes les communications
-          replyToEmail: "mniane6426@gmail.com", // S'assurer que les réponses vont à cette adresse
+          adminEmail: "mniane6426@gmail.com",
+          replyToEmail: "mniane6426@gmail.com",
           response: response
         }
       });
@@ -98,17 +99,32 @@ const QuestionDetailsModal = ({
         return { success: false, error };
       }
       
-      console.log("Réponse de la fonction de notification:", data);
+      console.log("Réponse de la fonction de validation:", data);
       
-      if (data && data.error) {
-        console.error("Erreur lors de l'envoi de l'email:", data.error);
-        return { success: false, emailSent: false, error: data.error };
+      if (!data.success) {
+        console.error("Erreur lors de la validation des données:", data.error);
+        return { success: false, error: data.error };
       }
       
-      console.log("Notification envoyée avec succès:", data);
-      return { success: true, emailSent: true, data };
+      // Envoi de l'email via EmailJS
+      const emailResult = await sendNotificationEmail({
+        type: "doleance",
+        recipientEmail: question.email,
+        recipientName: question.name,
+        subject: `Mise à jour de votre doléance - ${question.title}`,
+        status: newStatus,
+        response: response
+      });
+      
+      if (!emailResult.success) {
+        console.error("Erreur lors de l'envoi de l'email:", emailResult.error);
+        return { success: false, error: emailResult.error };
+      }
+      
+      console.log("Notification envoyée avec succès:", emailResult);
+      return { success: true, data: emailResult };
     } catch (error) {
-      console.error("Erreur d'invocation de la fonction send-notification:", error);
+      console.error("Erreur d'envoi de notification:", error);
       return { success: false, error };
     }
   };
@@ -133,7 +149,7 @@ const QuestionDetailsModal = ({
       let emailError = null;
       
       if (status !== originalStatus) {
-        const emailResult = await sendNotificationEmail(question.id, status);
+        const emailResult = await notifyUserViaEmail(question.id, status);
         
         if (!emailResult.success) {
           console.error("Erreur lors de l'envoi de la notification:", emailResult.error);

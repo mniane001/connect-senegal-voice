@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -29,6 +28,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Textarea } from "@/components/ui/textarea";
+import { sendNotificationEmail } from "@/services/emailService";
 
 interface Rencontre {
   id: string;
@@ -94,31 +94,55 @@ const RencontreDetailsModal = ({
     setResponse(e.target.value);
   };
 
-  const sendNotificationEmail = async (rencontreId: string, newStatus: string) => {
+  const notifyUserViaEmail = async (rencontreId: string, newStatus: string) => {
     try {
-      console.log("Envoi de la notification par email pour l'audience:", rencontreId);
+      console.log("Préparation de la notification par email pour l'audience:", rencontreId);
       
+      // Validation des données via la fonction Edge
       const { data, error } = await supabase.functions.invoke("send-notification", {
         body: {
           type: "audience",
           id: rencontreId,
           newStatus: newStatus,
-          adminEmail: "mniane6426@gmail.com", // Email principal pour toutes les communications
-          replyToEmail: "mniane6426@gmail.com", // S'assurer que les réponses vont à cette adresse
+          adminEmail: "mniane6426@gmail.com",
+          replyToEmail: "mniane6426@gmail.com",
           response: response
         }
       });
       
       if (error) {
-        console.error("Erreur lors de l'envoi de la notification:", error);
-        throw error;
+        console.error("Erreur lors de l'appel de la fonction send-notification:", error);
+        return { success: false, error };
       }
       
-      console.log("Notification envoyée avec succès:", data);
-      return data;
+      console.log("Réponse de la fonction de validation:", data);
+      
+      if (!data.success) {
+        console.error("Erreur lors de la validation des données:", data.error);
+        return { success: false, error: data.error };
+      }
+      
+      // Envoi de l'email via EmailJS
+      const emailResult = await sendNotificationEmail({
+        type: "audience",
+        recipientEmail: rencontre.email,
+        recipientName: rencontre.name,
+        subject: `Mise à jour de votre demande d'audience`,
+        status: newStatus,
+        response: response,
+        meetingDate: date ? date.toISOString() : null
+      });
+      
+      if (!emailResult.success) {
+        console.error("Erreur lors de l'envoi de l'email:", emailResult.error);
+        return { success: false, error: emailResult.error };
+      }
+      
+      console.log("Notification envoyée avec succès:", emailResult);
+      return { success: true, data: emailResult };
     } catch (error) {
-      console.error("Erreur d'invocation de la fonction send-notification:", error);
-      throw error;
+      console.error("Erreur d'envoi de notification:", error);
+      return { success: false, error };
     }
   };
 
@@ -152,11 +176,20 @@ const RencontreDetailsModal = ({
       // Si le statut a changé, envoyer une notification par email
       if (status !== originalStatus) {
         try {
-          await sendNotificationEmail(rencontre.id, status);
-          toast({
-            title: "Email de notification envoyé",
-            description: `Un email a été envoyé à ${rencontre.email} pour l'informer du changement de statut.`,
-          });
+          const emailResult = await notifyUserViaEmail(rencontre.id, status);
+          if (emailResult.success) {
+            toast({
+              title: "Email de notification envoyé",
+              description: `Un email a été envoyé à ${rencontre.email} pour l'informer du changement de statut.`,
+            });
+          } else {
+            console.error("Erreur lors de l'envoi de l'email:", emailResult.error);
+            toast({
+              title: "Mise à jour réussie, mais échec de l'envoi d'email",
+              description: "La demande a été mise à jour, mais l'email de notification n'a pas pu être envoyé.",
+              variant: "destructive",
+            });
+          }
         } catch (emailError) {
           console.error("Erreur lors de l'envoi de l'email:", emailError);
           toast({
